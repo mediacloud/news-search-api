@@ -1,11 +1,14 @@
 import json
 import os
+import logging
 
 from enum import Enum
 from elasticsearch import Elasticsearch
 
 import yaml
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def load_config():
     conf = os.getenv("CONFIG", "config.yml")
@@ -30,8 +33,8 @@ def assert_elasticsearch_connection(es: Elasticsearch) -> bool:
     try:
         info = es.info()
         if info["version"]["number"]:
-            print("Connected to Elasticsearch version:", info["version"]["number"])
+            logger.info("Connected to Elasticsearch version: %s", info["version"]["number"])
             return True
     except Exception as e:
-        print("Failed to connect to Elasticsearch:", str(e))
+        logger.error("Failed to connect to Elasticsearch: %s", str(e))
     return False
