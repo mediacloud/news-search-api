@@ -1,0 +1,7 @@
+name: Build and push Docker Image to Dokcer Hub
+on:
+  push:
+    branches:
+      - main
+
+env:

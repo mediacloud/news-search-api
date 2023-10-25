@@ -15,10 +15,8 @@ import pandas as pd
 from wordcloud import WordCloud
 
 from utils import load_config, env_to_list
+from api import config
 
-
-config = load_config()
-config["indexes"] = env_to_list("INDEXES") or config.get("indexes", [])
 config["title"] = os.getenv("TITLE", config.get("title", "Collection Search API")) + " Explorer"
 config["apiurl"] = os.getenv("APIURL", config.get("apiurl", "http://localhost:8000/v1")).rstrip("/")
 config["maxwc"] = int(os.getenv("MAXWC", config.get("maxwc", 30)))

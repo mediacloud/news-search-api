@@ -3,7 +3,7 @@ services:
     image: colsearch
     build: .
     ports:
-      - 8000:8000
+      - 8080:8000
     networks:
       - story-indexer
     volumes:

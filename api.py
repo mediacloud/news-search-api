@@ -15,7 +15,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
-from utils import load_config, env_to_list, env_to_dict, list_to_enum
+from utils import assert_elasticsearch_connection, load_config, env_to_list, env_to_dict, list_to_enum
 
 
 class ApiVersion(str, Enum):
@@ -25,7 +25,7 @@ class ApiVersion(str, Enum):
 config = load_config()
 config["termfields"] = env_to_list("TERMFIELDS") or config.get("termfields", [])
 config["termaggrs"] = env_to_list("TERMAGGRS") or config.get("termaggrs", [])
-config["indexes"] = env_to_list("INDEXES") or config.get("indexes", [])
+# config["indexes"] = env_to_list("INDEXES") or config.get("indexes", [])
 config["eshosts"] = env_to_list("ESHOSTS") or config.get("eshosts", ["http://localhost:9200"])
 config["esopts"] = env_to_dict("ESOPTS") or config.get("esopts", {})
 config["wayback"] = os.getenv("WAYBACK", config.get("wayback", "https://web.archive.org/web")).rstrip("/")
@@ -35,6 +35,17 @@ config["description"] = os.getenv("DESCRIPTION", config.get("description", ""))
 config["debug"] = str(os.getenv("DEBUG", config.get("debug", False))).lower() in ("true", "1", "t")
 
 ES = Elasticsearch(config["eshosts"], **config["esopts"])
+
+if assert_elasticsearch_connection(ES):
+    try:
+        index_list = ES.cat.indices(format="json")
+        indexes = [index['index'] for index in index_list]
+    except Exception as e:
+        print("Failed to fetch indexes from Elasticsearch:", str(e))
+
+    config["indexes"] = indexes
+
+print(f"Config: {config}")
 
 Collection = list_to_enum("Collection", config["indexes"])
 TermField = list_to_enum("TermField", config["termfields"])
