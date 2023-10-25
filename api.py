@@ -36,7 +36,7 @@ ES = Elasticsearch(config["eshosts"], **config["esopts"])
 
 if assert_elasticsearch_connection(ES):
     try:
-        index_list = ES.cat.indices(format="json")
+        index_list = ES.cat.indices(index="mediacloud_search_text_*", s="index", format="json")
         indexes = [index['index'] for index in index_list]
     except Exception as e:
         logger.warning("Failed to fetch indexes from Elasticsearch: %s", str(e))
