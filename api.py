@@ -35,7 +35,8 @@ config["debug"] = str(os.getenv("DEBUG", config.get("debug", False))).lower() in
 
 ES = Elasticsearch(config["eshosts"], **config["esopts"])
 
-Collection = list_to_enum("Collection", config["indexes"])
+
+Collection = list_to_enum("Collection", config["indexes"]+["*"]) ##Simple way to expose a search interface over all indexes
 TermField = list_to_enum("TermField", config["termfields"])
 TermAggr = list_to_enum("TermAggr", config["termaggrs"])
 
