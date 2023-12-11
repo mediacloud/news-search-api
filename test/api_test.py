@@ -3,6 +3,7 @@ from unittest import TestCase
 import datetime as dt
 from fastapi.testclient import TestClient
 
+import api
 from test import INDEX_NAME, ELASTICSEARCH_URL
 # make sure to set these env vars before importing the app so it runs against a test ES you've set up with
 # the `create_fixtures.py` script
@@ -18,6 +19,12 @@ class ApiTest(TestCase):
 
     def setUp(self):
         self._client = TestClient(app)
+
+    def test_api_version_response_header(self):
+        response = self._client.get(f'/', timeout=TIMEOUT)
+        assert response.status_code == 200
+        assert 'x-api-version' in response.headers
+        assert response.headers['x-api-version'] == api.ApiVersion.v1
 
     def test_overview_all(self):
         # make sure all stories come back and domain is right
