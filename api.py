@@ -239,31 +239,30 @@ def _validate_sort_order(sort_order: Optional[str]):
     if sort_order and sort_order not in VALID_SORT_ORDERS:
         raise HTTPException(status_code=400,
                             detail=f"Invalid sort order (must be on of {', '.join(VALID_SORT_ORDERS)})")
+    return sort_order
 
 
 def _validate_sort_field(sort_field: Optional[str]):
     if sort_field and sort_field not in VALID_SORT_FIELDS:
         raise HTTPException(status_code=400,
                             detail=f"Invalid sort field (must be on of {', '.join(VALID_SORT_FIELDS)})")
+    return sort_field
 
 
 def _validate_page_size(page_size: Optional[int]):
     if page_size and page_size < 1:
         raise HTTPException(status_code=400,
                             detail=f"Invalid page size (must be greater than 0)")
+    return page_size
 
 
 def cs_paged_query(q: str, resume: Optional[str], expanded: Optional[bool], sort_field=Optional[str],
                    sort_order=Optional[str], page_size=Optional[int]) -> Dict:
     query = cs_basic_query(q, expanded)
-    final_sort_field = sort_field or "publication_date"
-    _validate_sort_field(final_sort_field)
-    final_sort_order = sort_order or "desc"
-    _validate_sort_order(final_sort_order)
-    final_page_size = page_size or config["maxpage"]
-    _validate_page_size(final_page_size)
+    final_sort_field = _validate_sort_field(sort_field or "publication_date")
+    final_sort_order = _validate_sort_order(sort_order or "desc")
     query.update({
-        "size": final_page_size,
+        "size": _validate_page_size(page_size or config["maxpage"]),
         "track_total_hits": False,
         "sort": [{final_sort_field: final_sort_order}]
     })
