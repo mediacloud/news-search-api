@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-
-
 import base64
 import os
 import time
-
 from enum import Enum
 from typing import Union
 from urllib.parse import quote_plus
@@ -15,8 +12,27 @@ from fastapi import FastAPI, Request, Response, Body, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
+import sentry_sdk
+from sentry_sdk.integrations.starlette import StarletteIntegration
+from sentry_sdk.integrations.fastapi import FastApiIntegration
 
 from utils import assert_elasticsearch_connection, logger, load_config, env_to_list, env_to_dict, list_to_enum
+
+if os.getenv("SENTRY_DSN"):
+    sentry_sdk.init(
+        dsn=os.getenv("SENTRY_DSN"),
+        enable_tracing=True,
+        integrations=[
+            StarletteIntegration(
+                transaction_style="url"
+            ),
+            FastApiIntegration(
+                transaction_style="url"
+            ),
+        ]
+    )
+
+app = FastAPI()
 
 
 class ApiVersion(str, Enum):
