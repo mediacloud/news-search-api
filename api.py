@@ -297,7 +297,7 @@ def format_match(hit: dict, base: str, collection: str, expanded: bool = False):
         "article_title": src.get("article_title") or "[UNKNOWN]",
         "normalized_article_title": src.get("normalized_article_title") or "[UNKNOWN]",
         "publication_date": (src.get("publication_date") or "[UNKNOWN]")[:10],
-        "indexed_date": (src.get("indexed_date") or "[UNKNOWN]")[:10],
+        "indexed_date": (src.get("indexed_date") or "[UNKNOWN]"),
         "language": src.get("language") or "[UNKNOWN]",
         "full_langauge": src.get("full_language") or "[UNKNOWN]",
         "url": src.get("url") or "[UNKNOWN]",
