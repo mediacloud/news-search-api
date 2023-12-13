@@ -1,12 +1,14 @@
-import json
 import logging
-import os
+import datetime as dt
 import copy
 import hashlib
+from random import randrange
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ConflictError
+import mcmetadata.urls as urls
+import mcmetadata.titles as titles
 
-from test import INDEX_NAME, ELASTICSEARCH_URL, FIXTURES_DIR
+from test import INDEX_NAME, ELASTICSEARCH_URL
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,15 +44,15 @@ logger.info(f"Index '{INDEX_NAME}' with field mappings created successfully (or 
 
 # now import the fixtures
 base_fixture = {
-    "original_url": "http://example.com/article",
-    "url": "http://example.com/article",
-    "normalized_url": "http://example.com/article",
+    "original_url": "http://example.com/article/",
+    "url": "http://example.com/article/",
+    "normalized_url": "http://example.com/article/",
     "article_title": "Sample Article ",
     "normalized_article_title": "sample_article_",
     "text_content": "This is the content of the sample article ",
     "canonical_domain": "example.com",
     "publication_date": "2023-11-01",
-    "indexed_date": "2023-12-01",
+    "indexed_date": "2023-12-01T12:12:12",
     "language": "en",
     "full_language": "en-us",
     "text_extraction": "trafilatura",
@@ -59,17 +61,18 @@ base_fixture = {
 imported_count = 0
 for idx in range(0, 2000):
     fixture = copy.copy(base_fixture)
-    fixture['original_url'] += str(idx)
     fixture['url'] += str(idx)
-    fixture['normalized_url'] += str(idx)
+    fixture['original_url'] = fixture['url']
+    fixture['normalized_url'] = urls.normalize_url(fixture['url'])
     fixture['article_title'] += str(idx)
-    fixture['normalized_article_title'] += str(idx)
+    fixture['normalized_article_title'] = titles.normalize_title(fixture['article_title'])
     fixture['text_content'] += str(idx)
     fixture['publication_date'] = "2023-" + str(10+int(idx / 1000)) + "-" + str(1 + (idx % 29)).zfill(2)
-    fixture['indexed_date'] = "2023-" + str(10+int(idx / 1000)) + "-" + str(1 + (idx % 29)).zfill(2)
-    url_hash = hashlib.sha256(fixture['url'].encode("utf-8")).hexdigest()
+    random_time_on_day = dt.datetime.fromisoformat(fixture['publication_date']) + dt.timedelta(minutes=randrange(1440))
+    fixture['indexed_date'] = random_time_on_day.isoformat()
+    unique_hash = urls.unique_url_hash(fixture['url'])
     try:
-        response = es_client.index(index=INDEX_NAME, id=url_hash, document=fixture)
+        response = es_client.index(index=INDEX_NAME, id=unique_hash, document=fixture)
         imported_count += 1
     except ConflictError:
         logger.warning("  duplicate fixture, ignoring")
