@@ -131,11 +131,11 @@ class ApiTest(TestCase):
                                      json={"q": "*", "sort_field": "indexed_date"}, timeout=TIMEOUT)
         assert response.status_code == 200
         results = response.json()
-        tomorrow = dt.date.today() + dt.timedelta(days=1)
+        tomorrow = dt.datetime.today() + dt.timedelta(days=1)
         last_date = tomorrow
         for story in results:
             assert 'indexed_date' in story
-            story_date = dt.date.fromisoformat(story['indexed_date'])
+            story_date = dt.datetime.fromisoformat(story['indexed_date'])
             assert story_date <= last_date
             last_date = story_date
         # invalid
@@ -157,3 +157,33 @@ class ApiTest(TestCase):
         response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
                                      json={"q": "*", "page_size": -10}, timeout=TIMEOUT)
         assert response.status_code == 400
+
+    def test_date_formats(self):
+        response = self._client.post(f'/v1/{INDEX_NAME}/search/result', json={"q": "*"}, timeout=TIMEOUT)
+        assert response.status_code == 200
+        results = response.json()
+        for story in results:
+            # publication date is just date
+            assert 'publication_date' in story
+            assert len(story['publication_date']) == 10
+            # indexed date is datetime
+            assert 'indexed_date' in story
+            assert len(story['indexed_date']) == 19
+            assert 'T' in story['indexed_date']
+
+    def test_filter_by_indexed_date(self):
+        response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
+                                     json={"q": "*", "sort_field": "indexed_date", "page_size": 100}, timeout=TIMEOUT)
+        assert response.status_code == 200
+        results = response.json()
+        newest_indexed_date = results[0]['indexed_date']
+        oldest_indexed_date = results[-1]['indexed_date']
+        assert oldest_indexed_date < newest_indexed_date
+        # test filter
+        response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
+                                     json={"q": f"* AND indexed_date:[2010-01-01T00:00:00 TO {oldest_indexed_date}]",
+                                           "sort_field": "indexed_date", "page_size": 100}, timeout=TIMEOUT)
+        assert response.status_code == 200
+        results = response.json()
+        for story in results:
+            assert story['indexed_date'] <= oldest_indexed_date
