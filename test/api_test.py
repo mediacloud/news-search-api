@@ -83,6 +83,7 @@ class ApiTest(TestCase):
         # now page through to make sure it matches
         more_stories = True
         next_page_token = None
+        page_count = 0
         stories = []
         while more_stories:
             response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
@@ -93,8 +94,10 @@ class ApiTest(TestCase):
             next_page_token = response.headers.get('x-resume-token')
             stories += results
             more_stories = next_page_token is not None
+            page_count += 1
         # not sure why all stories don't get imported, but account for it here
         assert len(stories) >= (total_expected_stories * 0.9)
+        assert page_count == (1 + int(total_expected_stories / 1000))
 
     def test_text_content_expanded(self):
         response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
