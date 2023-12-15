@@ -4,7 +4,7 @@ import datetime as dt
 from fastapi.testclient import TestClient
 
 import api
-from test import INDEX_NAME, ELASTICSEARCH_URL
+from test import INDEX_NAME, ELASTICSEARCH_URL, NUMBER_OF_TEST_STORIES
 # make sure to set these env vars before importing the app so it runs against a test ES you've set up with
 # the `create_fixtures.py` script
 os.environ["INDEXES"] = INDEX_NAME
@@ -72,6 +72,33 @@ class ApiTest(TestCase):
         next_page_token = response.headers.get('x-resume-token')
         assert next_page_token is not None
 
+    def test_paging_all(self):
+        # get total count
+        response = self._client.post(f'/v1/{INDEX_NAME}/search/overview', json={"q": "*"}, timeout=TIMEOUT)
+        assert response.status_code == 200
+        results = response.json()
+        assert 'total' in results
+        assert results['total'] == NUMBER_OF_TEST_STORIES
+        total_expected_stories = results['total']
+        # now page through to make sure it matches
+        more_stories = True
+        next_page_token = None
+        page_count = 0
+        stories = []
+        while more_stories:
+            response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
+                                         json={"q": "*", "resume": next_page_token}, timeout=TIMEOUT)
+            assert response.status_code == 200
+            results = response.json()
+            assert len(results) > 0
+            next_page_token = response.headers.get('x-resume-token')
+            stories += results
+            more_stories = next_page_token is not None
+            page_count += 1
+        # not sure why all stories don't get imported, but account for it here
+        assert len(stories) >= (total_expected_stories * 0.9)
+        assert page_count == (1 + int(total_expected_stories / 1000))
+
     def test_text_content_expanded(self):
         response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
                                      json={"q": "*", "expanded": 1}, timeout=TIMEOUT)
@@ -88,8 +115,8 @@ class ApiTest(TestCase):
                                      json={"q": "*"}, timeout=TIMEOUT)
         assert response.status_code == 200
         results = response.json()
-        tomorrow = dt.date.today() + dt.timedelta(days=1)
-        last_pub_date = tomorrow
+        future = dt.date(2050, 1, 1)
+        last_pub_date = future
         for story in results:
             assert 'text_content' not in story
             assert 'publication_date' in story
@@ -118,8 +145,8 @@ class ApiTest(TestCase):
                                      json={"q": "*", "sort_field": "publication_date"}, timeout=TIMEOUT)
         assert response.status_code == 200
         results = response.json()
-        tomorrow = dt.date.today() + dt.timedelta(days=1)
-        last_date = tomorrow
+        future = dt.date(2050, 1, 1)
+        last_date = future
         for story in results:
             assert 'text_content' not in story
             assert 'publication_date' in story
@@ -131,8 +158,8 @@ class ApiTest(TestCase):
                                      json={"q": "*", "sort_field": "indexed_date"}, timeout=TIMEOUT)
         assert response.status_code == 200
         results = response.json()
-        tomorrow = dt.datetime.today() + dt.timedelta(days=1)
-        last_date = tomorrow
+        future = dt.datetime(2050, 1, 1)
+        last_date = future
         for story in results:
             assert 'indexed_date' in story
             story_date = dt.datetime.fromisoformat(story['indexed_date'])

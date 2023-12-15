@@ -282,7 +282,7 @@ def cs_paged_query(q: str, resume: Optional[str], expanded: Optional[bool], sort
     query.update({
         "size": _validate_page_size(page_size or config["maxpage"]),
         "track_total_hits": False,
-        "sort": [{final_sort_field: final_sort_order}]
+        "sort": {final_sort_field: {"order": final_sort_order, "format": "basic_date_time_no_millis"}},
     })
     if resume:
         # important to use `search_after` instead of 'from' for memory reasons related to paging through more

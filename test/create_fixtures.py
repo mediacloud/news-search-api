@@ -1,14 +1,13 @@
 import logging
 import datetime as dt
 import copy
-import hashlib
 from random import randrange
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import ConflictError
 import mcmetadata.urls as urls
 import mcmetadata.titles as titles
 
-from test import INDEX_NAME, ELASTICSEARCH_URL
+from test import INDEX_NAME, ELASTICSEARCH_URL, NUMBER_OF_TEST_STORIES
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -59,7 +58,7 @@ base_fixture = {
 }
 
 imported_count = 0
-for idx in range(0, 2000):
+for idx in range(0, NUMBER_OF_TEST_STORIES):
     fixture = copy.copy(base_fixture)
     fixture['url'] += str(idx)
     fixture['original_url'] = fixture['url']
@@ -67,7 +66,7 @@ for idx in range(0, 2000):
     fixture['article_title'] += str(idx)
     fixture['normalized_article_title'] = titles.normalize_title(fixture['article_title'])
     fixture['text_content'] += str(idx)
-    fixture['publication_date'] = "2023-" + str(10+int(idx / 1000)) + "-" + str(1 + (idx % 29)).zfill(2)
+    fixture['publication_date'] = (dt.date(2023, 1, 1) + dt.timedelta(days=randrange(365))).isoformat()
     random_time_on_day = dt.datetime.fromisoformat(fixture['publication_date']) + dt.timedelta(minutes=randrange(1440))
     fixture['indexed_date'] = random_time_on_day.isoformat()
     unique_hash = urls.unique_url_hash(fixture['url'])
