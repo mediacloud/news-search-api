@@ -63,7 +63,7 @@ class ApiTest(TestCase):
         assert results['total'] > 300
         assert results['total'] < 1200
 
-    def test_paging(self):
+    def test_paging_token(self):
         response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
                                      json={"q": "*"}, timeout=TIMEOUT)
         assert response.status_code == 200
@@ -71,6 +71,32 @@ class ApiTest(TestCase):
         assert len(results) == 1000
         next_page_token = response.headers.get('x-resume-token')
         assert next_page_token is not None
+        # now try with cusotm page size
+        response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
+                                     json={"q": "*", "page_size": 23}, timeout=TIMEOUT)
+        assert response.status_code == 200
+        results = response.json()
+        assert len(results) == 23
+        next_page_token = response.headers.get('x-resume-token')
+        assert next_page_token is not None
+
+    def _get_all_stories(self, page_size: int, query: str = "*"):
+        more_stories = True
+        next_page_token = None
+        page_count = 0
+        stories = []
+        while more_stories:
+            response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
+                                         json={"q": query, "page_size": page_size, "resume": next_page_token},
+                                         timeout=TIMEOUT)
+            assert response.status_code == 200
+            results = response.json()
+            assert len(results) > 0
+            next_page_token = response.headers.get('x-resume-token')
+            stories += results
+            more_stories = next_page_token is not None
+            page_count += 1
+        return page_count, stories
 
     def test_paging_all(self):
         # get total count
@@ -81,22 +107,14 @@ class ApiTest(TestCase):
         assert results['total'] == NUMBER_OF_TEST_STORIES
         total_expected_stories = results['total']
         # now page through to make sure it matches
-        more_stories = True
-        next_page_token = None
-        page_count = 0
-        stories = []
-        while more_stories:
-            response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
-                                         json={"q": "*", "resume": next_page_token}, timeout=TIMEOUT)
-            assert response.status_code == 200
-            results = response.json()
-            assert len(results) > 0
-            next_page_token = response.headers.get('x-resume-token')
-            stories += results
-            more_stories = next_page_token is not None
-            page_count += 1
-        # not sure why all stories don't get imported, but account for it here
-        assert len(stories) >= (total_expected_stories * 0.9)
+        page_size = 1000
+        page_count, stories = self._get_all_stories(page_size)
+        assert len(stories) >= (total_expected_stories * 0.9)  # weird that not all results returned
+        assert page_count == (1 + int(total_expected_stories / 1000))
+        # now try it with small page size
+        page_size = 900
+        page_count, stories = self._get_all_stories(page_size)
+        assert len(stories) >= (total_expected_stories * 0.9)  # weird that not all results returned
         assert page_count == (1 + int(total_expected_stories / 1000))
 
     def test_text_content_expanded(self):
@@ -214,3 +232,22 @@ class ApiTest(TestCase):
         results = response.json()
         for story in results:
             assert story['indexed_date'] <= oldest_indexed_date
+
+    def test_sort_duplicate_pub_date(self):
+        small_page_size = 20
+        query = "* AND publication_date:[2023-12-01 TO 2023-12-05]"
+        # check enough stories
+        response = self._client.post(f'/v1/{INDEX_NAME}/search/overview', json={"q": query}, timeout=TIMEOUT)
+        assert response.status_code == 200
+        results = response.json()
+        assert 'total' in results
+        assert results['total'] > small_page_size * 2
+        # now pull the same results twice to compare
+        _, stories1 = self._get_all_stories(small_page_size, query)
+        url_list_take1 = [s['normalized_url'] for s in stories1]
+        _, stories2 = self._get_all_stories(small_page_size, query)
+        url_list_take2 = [s['normalized_url'] for s in stories2]
+        # make sure order is same across the two identical queries
+        assert len(url_list_take1) == len(url_list_take2)
+        for idx in range(0, len(url_list_take2)):
+            assert url_list_take1[idx] == url_list_take2[idx]
