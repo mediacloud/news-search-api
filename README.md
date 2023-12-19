@@ -63,11 +63,11 @@ Access an interactive API documentation and a collection index explorer in a web
 Deployments are now configured to be automatically built and released via GitHub Actions. 
 
 1. Change the version number stored in `ApiVersion.v1` in `api.py`
-2. A small note to the version history below indicating what changed
+2. Add a small note to the version history below indicating what changed
 3. Commit and tag the the repo with the same number
 4. Push the tag to GitHub to trigger the build and release
 5. Once it is done, the labeled image will be ready at https://hub.docker.com/r/mcsystems/news-search-api
 
-### Version History
+## Version History
 
 * __v1.0.0__ - First official release 
