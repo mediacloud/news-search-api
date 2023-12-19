@@ -443,7 +443,7 @@ def _search_result(collection: Collection, q: str, req: Request, resp: Response,
         raise HTTPException(status_code=404, detail="No results found!")
     base = proxy_base_url(req)
     qurl = f"{base}/{collection.value}/search/result?q={quote_plus(q)}"
-    if len(res["hits"]["hits"]) == config["maxpage"]:
+    if len(res["hits"]["hits"]) == (page_size or config['maxpage']):
         resume_key = encode(str(res["hits"]["hits"][-1]["sort"][0]))
         resp.headers["x-resume-token"] = resume_key
         resp.headers["link"] = f'<{qurl}&resume={resume_key}>; rel="next"'
