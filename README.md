@@ -1,15 +1,17 @@
-# Web Archive Search Index API and UI
+Web Archive Search Index API and UI
+===================================
 
 An API wrapper to the Elasticsearch index of web archival collections and a web UI to explore those
 indexes. A part of the [story-indexer stack](https://github.com/mediacloud/story-indexer). Maintained as a 
-separate repository for future legibility.  This exposes an API and a Streamlit-based search UI for
-quick testing.
+separate repository for future legibility.  This exposes an FastAPI-based API server and a Streamlit-based
+search UI (for quick testing). Both are managed as internal services as part of the Media Cloud Online News
+Archive.
 
 ## ES Index
 
 The API service expects the following ES index schema, where `title` and `snippet` fields must have
 the `fielddata` enabled (if they have the type `text`). This is currently defined in the story-indexer
-stack, but is replicated here for convenience. 
+stack, but is replicated here for convenience (but might be out of date). 
 <details>
 
 ```json
@@ -40,12 +42,10 @@ stack, but is replicated here for convenience.
 
 ## Run Services
 
-This service is not designed to be run stand-alone, rather it is deployed as a component in the
-[story-indexer stack](https://github.com/mediacloud/story-indexer). Configurations is set using
-environment variables by setting corresponding upper-case names of the config parameters. Environment
-variables that accept a list (e.g., `ESHOSTS` and `INDEXES`) can have commas or spaces as
-separators. Configuration via a config file in the syntax of the provided config.yml.sample can be
-used for testing.
+Configurations is set using environment variables by setting corresponding upper-case names of the
+config parameters. Environment variables that accept a list (e.g., `ESHOSTS` and `INDEXES`) can have
+commas or spaces as separators. Configuration via a config file in the syntax of the provided
+`config.yml.sample` can be used for testing.
 
 Then run the API and UI services using Docker Compose:
 
@@ -60,6 +60,14 @@ Access an interactive API documentation and a collection index explorer in a web
 
 ## Building and Releasing
 
-Deployments are now configured to be automatically built and released via GitHub Actions. Commit and tag the
-repo when you are ready. Once you push the tag to GitHub, the GitHub Action will build and push the Docker
-image with the same tag to Docker Hub.
+Deployments are now configured to be automatically built and released via GitHub Actions. 
+
+1. Change the version number stored in `ApiVersion.v1` in `api.py`
+2. A small note to the version history below indicating what changed
+3. Commit and tag the the repo with the same number
+4. Push the tag to GitHub to trigger the build and release
+5. Once it is done, the labeled image will be ready at https://hub.docker.com/r/mcsystems/news-search-api
+
+### Version History
+
+* __v1.0.0__ - First official release 
