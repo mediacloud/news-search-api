@@ -1,30 +1,36 @@
+# to deploy: docker compose up --detach ??
+
+x-service-settings: &service-settings
+  image: mcsystems/news-search-api:v1.0.0b2
+
+x-environment-vars: &environment-vars
+  INDEXES: mediacloud_search_text_older,mediacloud_search_text_other,mediacloud_search_text_2021,mediacloud_search_text_2022,mediacloud_search_text_2023,mediacloud_search_text_2024
+  TZ: "GMT"
+
 services:
   api:
-    image: mcsystems/news-search-api
-    build: .
-    ports:
-      - 8000:8000
-    networks:
-      - story-indexer
-    volumes:
-      - .:/app
-
-  ui:
-    image: mcsystems/news-search-api
+    <<: *service-settings
     build: .
     environment:
-      APIURL: http://api:8000/v1
+      <<: *environment-vars
+      DESCRIPTION: "Description Here"
+      # ES config here only; ui should use API only:
+      ELASTICSEARCH_INDEX_NAME_PREFIX: mediacloud_search_text
+      ESHOSTS: http://ramos.angwin:9204,http://woodward.angwin:9200,http://bradley.angwin:9204
+      ESOPTS: '{"timeout": 60, "max_retries": 3}' # 'timeout' parameter is deprecated
+      TERMAGGRS: top,significant,rare
+      TERMFIELDS: article_title,text_content
     ports:
-      - 8001:8501
-    networks:
-      - story-indexer
-    volumes:
-      - .:/app
+      - 8000:8000
+
+  query:
+    <<: *service-settings
+    environment:
+      <<: *environment-vars
+      APIURL: http://api:8000/v1
+      TITLE: "Title Here"
+    ports:
+      - 8501:8501
     depends_on:
       - api
     command: streamlit run ui.py
-
-networks:
-  story-indexer:
-    name: story-indexer
-    external: true
