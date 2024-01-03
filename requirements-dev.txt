@@ -2,6 +2,7 @@ altair==5.2.*
 elasticsearch==8.8.*
 fastapi==0.104.*
 matplotlib==3.8.*
+mypy==1.5.1
 pandas==2.1.*
 pydantic==2.5.*
 requests
