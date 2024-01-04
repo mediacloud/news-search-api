@@ -2,7 +2,7 @@
 import base64
 import os
 import time
-from enum import Enum, StrEnum
+from enum import Enum
 from typing import Dict, Optional, TypeAlias, Union
 from urllib.parse import quote_plus
 
@@ -88,9 +88,10 @@ def get_allowed_collections():
     return all_indexes
 
 
-Collection = StrEnum("Collection", get_allowed_collections())  # type: ignore [misc]
-TermField = StrEnum("TermField", config["termfields"])  # type: ignore [misc]
-TermAggr = StrEnum("TermAggr", config["termaggrs"])  # type: ignore [misc]
+# A little annoying- the list comprehension could be removed in py3.11 by using StrEnum, but this is backwards compatable.
+Collection = Enum("Collection", [f"{kv}:{kv}".split(":")[:2] for kv in get_allowed_collections()])  # type: ignore [misc]
+TermField = Enum("TermField", [f"{kv}:{kv}".split(":")[:2] for kv in config["termfields"]])  # type: ignore [misc]
+TermAggr = Enum("TermAggr", [f"{kv}:{kv}".split(":")[:2] for kv in config["termaggrs"]])  # type: ignore [misc]
 
 
 tags = [
@@ -113,7 +114,7 @@ if config["debug"]:
 
 
 app = FastAPI(
-    version=list(ApiVersion)[-1], docs_url=None, redoc_url=None, openapi_url=None
+    version=list(ApiVersion)[-1].value, docs_url=None, redoc_url=None, openapi_url=None
 )
 
 app.add_middleware(
@@ -135,7 +136,7 @@ async def add_api_version_header(req: Request, call_next):
 v1 = FastAPI(
     title=config.get("title", "Interactive API") + " Docs",
     description=config.get("description", "A wrapper API for ES indexes."),
-    version=ApiVersion.v1,
+    version=ApiVersion.v1.value,
     openapi_tags=tags,
 )
 

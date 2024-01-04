@@ -2,10 +2,11 @@ name: Test Code
 
 on:
   - push
+  - pull_request:
+      types: [opened, edited]
 
 jobs:
   test:
-    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     name: Unit tests in Docker
     steps:
