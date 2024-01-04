@@ -2,7 +2,7 @@
 import base64
 import os
 import time
-from enum import Enum, StrEnum
+from enum import Enum
 from typing import Dict, Optional, TypeAlias, Union
 from urllib.parse import quote_plus
 
@@ -88,9 +88,9 @@ def get_allowed_collections():
     return all_indexes
 
 
-Collection = StrEnum("Collection", get_allowed_collections())  # type: ignore [misc]
-TermField = StrEnum("TermField", config["termfields"])  # type: ignore [misc]
-TermAggr = StrEnum("TermAggr", config["termaggrs"])  # type: ignore [misc]
+Collection = Enum("Collection", get_allowed_collections())  # type: ignore [misc]
+TermField = Enum("TermField", config["termfields"])  # type: ignore [misc]
+TermAggr = Enum("TermAggr", config["termaggrs"])  # type: ignore [misc]
 
 
 tags = [
