@@ -2,7 +2,7 @@
 import base64
 import os
 import time
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Dict, Optional, TypeAlias, Union
 from urllib.parse import quote_plus
 
@@ -88,9 +88,9 @@ def get_allowed_collections():
     return all_indexes
 
 
-Collection = Enum("Collection", get_allowed_collections())  # type: ignore [misc]
-TermField = Enum("TermField", config["termfields"])  # type: ignore [misc]
-TermAggr = Enum("TermAggr", config["termaggrs"])  # type: ignore [misc]
+Collection = StrEnum("Collection", get_allowed_collections())  # type: ignore [misc]
+TermField = StrEnum("TermField", config["termfields"])  # type: ignore [misc]
+TermAggr = StrEnum("TermAggr", config["termaggrs"])  # type: ignore [misc]
 
 
 tags = [
@@ -379,7 +379,7 @@ def version_root(req: Request):
     Links to various collections
     """
     lis = [
-        f'<li><a href="{req.scope.get("root_path")}/{col.value}">{col.value}</a></li>'
+        f'<li><a href="{req.scope.get("root_path")}/{col.name}">{col.name}</a></li>'
         for col in Collection
     ]
     return "\n".join(["<ul>"] + lis + ["</ul>"])
@@ -388,7 +388,7 @@ def version_root(req: Request):
 @v1.get("/collections", tags=["data"])
 @v1.head("/collections", include_in_schema=False)
 def get_collections(req: Request):
-    return [col.value for col in Collection]
+    return [col.name for col in Collection]
 
 
 @v1.get("/{collection}", response_class=HTMLResponse, tags=["info"])

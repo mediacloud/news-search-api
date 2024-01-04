@@ -28,11 +28,7 @@ def env_to_dict(name: str):
 
 
 def list_to_enum(name: str, koptv: list):
-    # I'm gonna leave a complaint here for a commit or two, just so my frustration is recorded
-    # This gadget is nonsense. there's no good reason to keep the names and values the same, as is done here.
-    # Throughout api we trade 'name' and 'value' sort of arbitrarily, but they're always the same value in this paradigm.
-    # Convoluted nonsense that doesn't understand what Enums are good for.
-    # sns
+    # Just use StrEnum? py3.11 feature- let's attempt.
     return Enum(name, [f"{kv}:{kv}".split(":")[:2] for kv in koptv])
 
 
