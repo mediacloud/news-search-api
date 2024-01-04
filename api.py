@@ -2,8 +2,8 @@
 import base64
 import os
 import time
-from enum import Enum
-from typing import Dict, Optional, Union
+from enum import Enum, StrEnum
+from typing import Dict, Optional, TypeAlias, Union
 from urllib.parse import quote_plus
 
 import sentry_sdk
@@ -20,7 +20,6 @@ from utils import (
     assert_elasticsearch_connection,
     env_to_dict,
     env_to_list,
-    list_to_enum,
     load_config,
     logger,
 )
@@ -89,9 +88,10 @@ def get_allowed_collections():
     return all_indexes
 
 
-Collection = list_to_enum("Collection", get_allowed_collections())
-TermField = list_to_enum("TermField", config["termfields"])
-TermAggr = list_to_enum("TermAggr", config["termaggrs"])
+Collection = StrEnum("Collection", get_allowed_collections())  # type: ignore [misc]
+TermField = StrEnum("TermField", config["termfields"])  # type: ignore [misc]
+TermAggr = StrEnum("TermAggr", config["termaggrs"])  # type: ignore [misc]
+
 
 tags = [
     {
@@ -165,7 +165,7 @@ def decode(strng: str):
 
 
 def cs_basic_query(q: str, expanded: bool = False) -> Dict:
-    default = {
+    default: dict = {
         "_source": [
             "article_title",
             "normalized_article_title",
@@ -214,12 +214,12 @@ def cs_overview_query(q: str):
     return query
 
 
-def cs_terms_query(q: str, field: str = "article_title", aggr: str = "top"):
+def cs_terms_query(q: str, field: TermField, aggr: TermAggr):
     resct = 200
     aggr_map = {
         "top": {
             "terms": {
-                "field": field,
+                "field": field.name,
                 "size": resct,
                 "min_doc_count": 10,
                 "shard_min_doc_count": 5,
@@ -227,13 +227,13 @@ def cs_terms_query(q: str, field: str = "article_title", aggr: str = "top"):
         },
         "significant": {
             "significant_terms": {
-                "field": field,
+                "field": field.name,
                 "size": resct,
                 "min_doc_count": 10,
                 "shard_min_doc_count": 5,
             }
         },
-        "rare": {"rare_terms": {"field": field, "exclude": "[0-9].*"}},
+        "rare": {"rare_terms": {"field": field.name, "exclude": "[0-9].*"}},
     }
     query = cs_basic_query(q)
     query.update(
@@ -242,8 +242,8 @@ def cs_terms_query(q: str, field: str = "article_title", aggr: str = "top"):
             "_source": False,
             "aggregations": {
                 "sample": {
-                    "sampler": {"shard_size": 10 if aggr == "rare" else 500},
-                    "aggregations": {"topterms": aggr_map[aggr]},
+                    "sampler": {"shard_size": 10 if aggr.name == "rare" else 500},
+                    "aggregations": {"topterms": aggr_map[aggr.name]},
                 }
             },
         }
@@ -279,8 +279,8 @@ def _validate_page_size(page_size: Optional[int]):
 
 def cs_paged_query(
     q: str,
-    resume: Optional[str],
-    expanded: Optional[bool],
+    resume: Union[str, None],
+    expanded: bool,
     sort_field=Optional[str],
     sort_order=Optional[str],
     page_size=Optional[int],
@@ -336,7 +336,7 @@ def format_counts(bucket: list):
 
 
 def proxy_base_url(req: Request):
-    return f'{str(os.getenv("PROXY_BASE", req.base_url)).rstrip("/")}/{req.scope.get("root_path").lstrip("/")}'
+    return f'{str(os.getenv("PROXY_BASE", req.base_url)).rstrip("/")}/{req.scope.get("root_path").lstrip("/")}'  # type: ignore [union-attr]
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -400,9 +400,9 @@ def collection_root(collection: Collection, req: Request):
     return "\n".join(
         [
             "<ul>",
-            f'<li><a href="{req.scope.get("root_path")}/{collection.value}/search">Search API</a></li>',
-            f'<li><a href="{req.scope.get("root_path")}/{collection.value}/terms">Related Terms API</a></li>',
-            f'<li><a href="{req.scope.get("root_path")}/{collection.value}/article">Article</a></li>',
+            f'<li><a href="{req.scope.get("root_path")}/{collection.name}/search">Search API</a></li>',
+            f'<li><a href="{req.scope.get("root_path")}/{collection.name}/terms">Related Terms API</a></li>',
+            f'<li><a href="{req.scope.get("root_path")}/{collection.name}/article">Article</a></li>',
             "</ul>",
         ]
     )
@@ -414,7 +414,7 @@ def search_root(collection: Collection, req: Request):
     """
     Links to various search API endpoints
     """
-    spath = f"{req.scope.get('root_path')}/{collection.value}/search"
+    spath = f"{req.scope.get('root_path')}/{collection.name}/search"
     return "\n".join(
         [
             "<ul>",
@@ -426,7 +426,7 @@ def search_root(collection: Collection, req: Request):
 
 
 def _search_overview(collection: Collection, q: str, req: Request):
-    res = ES.search(index=collection.name, body=cs_overview_query(q))
+    res = ES.search(index=collection.name, body=cs_overview_query(q))  # type: ignore [call-arg]
 
     if not res["hits"]["hits"]:
         raise HTTPException(status_code=404, detail="No results found!")
@@ -441,7 +441,7 @@ def _search_overview(collection: Collection, q: str, req: Request):
         "toplangs": format_counts(res["aggregations"]["lang"]["buckets"]),
         "dailycounts": format_day_counts(res["aggregations"]["daily"]["buckets"]),
         "matches": [
-            format_match(h, base, collection.value) for h in res["hits"]["hits"]
+            format_match(h, base, collection.name) for h in res["hits"]["hits"]
         ],
     }
 
@@ -470,22 +470,22 @@ def _search_result(
     resp: Response,
     resume: Union[str, None] = None,
     expanded: bool = False,
-    sort_field: str = None,
-    sort_order: str = None,
-    page_size: int = None,
+    sort_field: Optional[str] = None,
+    sort_order: Optional[str] = None,
+    page_size: Optional[int] = None,
 ):
     query = cs_paged_query(q, resume, expanded, sort_field, sort_order, page_size)
-    res = ES.search(index=collection.name, body=query)
+    res = ES.search(index=collection.name, body=query)  # type: ignore [call-arg]
     if not res["hits"]["hits"]:
         raise HTTPException(status_code=404, detail="No results found!")
     base = proxy_base_url(req)
-    qurl = f"{base}/{collection.value}/search/result?q={quote_plus(q)}"
+    qurl = f"{base}/{collection.name}/search/result?q={quote_plus(q)}"
     if len(res["hits"]["hits"]) == (page_size or config["maxpage"]):
         resume_key = encode(str(res["hits"]["hits"][-1]["sort"][0]))
         resp.headers["x-resume-token"] = resume_key
         resp.headers["link"] = f'<{qurl}&resume={resume_key}>; rel="next"'
     return [
-        format_match(h, base, collection.value, expanded) for h in res["hits"]["hits"]
+        format_match(h, base, collection.name, expanded) for h in res["hits"]["hits"]
     ]
 
 
@@ -537,11 +537,11 @@ if config["debug"]:
         """
         Search using ES Query DSL as JSON payload
         """
-        return ES.search(index=collection.name, body=payload)
+        return ES.search(index=collection.name, body=payload)  # type: ignore [call-arg]
 
 
 def _get_terms(collection: Collection, q: str, field: TermField, aggr: TermAggr):
-    res = ES.search(index=collection.name, body=cs_terms_query(q, field, aggr))
+    res = ES.search(index=collection.name, body=cs_terms_query(q, field, aggr))  # type: ignore [call-arg]
     if (
         not res["hits"]["hits"]
         or not res["aggregations"]["sample"]["topterms"]["buckets"]
@@ -556,9 +556,9 @@ def term_field_root(collection: Collection, req: Request):
     """
     Links to various term fields
     """
-    tbase = f"{req.scope.get('root_path')}/{collection.value}/terms"
+    tbase = f"{req.scope.get('root_path')}/{collection.name}/terms"
     lis = [
-        f'<li><a href="{tbase}/{field.value}">{field.value}</a></li>'
+        f'<li><a href="{tbase}/{field.name}">{field.name}</a></li>'
         for field in TermField
     ]
     return "\n".join(["<ul>"] + lis + ["</ul>"])
@@ -572,9 +572,9 @@ def term_aggr_root(collection: Collection, req: Request, field: TermField):
     """
     Links to various term aggregations
     """
-    fbase = f"{req.scope.get('root_path')}/{collection.value}/terms/{field.value}"
+    fbase = f"{req.scope.get('root_path')}/{collection.name}/terms/{field.name}"
     lis = [
-        f'<li><a href="{fbase}/{aggr.value}">{aggr.value}</a></li>' for aggr in TermAggr
+        f'<li><a href="{fbase}/{aggr.name}">{aggr.name}</a></li>' for aggr in TermAggr
     ]
     return "\n".join(["<ul>"] + lis + ["</ul>"])
 
@@ -587,17 +587,20 @@ def get_terms_via_query_params(
     """
     Top terms with frequencies in matching articles
     """
-    return _get_terms(collection, q, field.value, aggr.value)
+    return _get_terms(collection, q, field, aggr)
 
 
 @v1.post("/{collection}/terms/{field}/{aggr}", tags=["data"])
 def get_terms_via_payload(
-    collection: Collection, payload: Query, field: TermField, aggr: TermAggr
+    collection: Collection,
+    payload: Query,
+    field: TermField,
+    aggr: TermAggr,
 ):
     """
     Top terms with frequencies in matching articles
     """
-    return _get_terms(collection, payload.q, field.value, aggr.value)
+    return _get_terms(collection, payload.q, field, aggr)
 
 
 @v1.get("/{collection}/article/{id}", tags=["data"])
@@ -615,7 +618,7 @@ def get_article(
             status_code=404, detail=f"An article with ID {decode(id)} not found!"
         ) from e
     base = proxy_base_url(req)
-    return format_match(hit, base, collection.value, True)
+    return format_match(hit, base, collection.name, True)  # type: ignore[arg-type]
 
 
 app.mount(f"/{ApiVersion.v1.name}", v1)

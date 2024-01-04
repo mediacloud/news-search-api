@@ -51,7 +51,7 @@ q = cols[1].text_input("Search Query", key="q", placeholder="covid -vaccine titl
 if not q or not col:
     st.stop()
 
-st.experimental_set_query_params(**st.session_state)
+st.experimental_set_query_params(**st.session_state)  # type: ignore [misc]
 
 d = load_data(col, q)
 if not d:

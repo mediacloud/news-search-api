@@ -38,7 +38,7 @@ es_mappings = {
     }
 }
 
-es_client.indices.create(
+es_client.indices.create(  # type: ignore [call-arg]
     index=INDEX_NAME, mappings=es_mappings, ignore=400
 )  # Ignore 400 to handle index already exists
 logger.info(
@@ -66,7 +66,7 @@ for idx in range(0, NUMBER_OF_TEST_STORIES):
     fixture = copy.copy(base_fixture)
     fixture["url"] += str(idx)
     fixture["original_url"] = fixture["url"]
-    fixture["normalized_url"] = urls.normalize_url(fixture["url"])
+    fixture["normalized_url"] = urls.normalize_url(fixture["url"])  # type: ignore [assignment]
     fixture["article_title"] += str(idx)
     fixture["normalized_article_title"] = titles.normalize_title(
         fixture["article_title"]
