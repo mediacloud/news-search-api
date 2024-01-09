@@ -44,7 +44,6 @@ class ApiVersion(str, Enum):
 config = load_config()
 config["termfields"] = env_to_list("TERMFIELDS") or config.get("termfields", [])
 config["termaggrs"] = env_to_list("TERMAGGRS") or config.get("termaggrs", [])
-config["indexes"] = env_to_list("INDEXES") or config.get("indexes", [])
 config["eshosts"] = env_to_list("ESHOSTS") or config.get(
     "eshosts", ["http://localhost:9200"]
 )
