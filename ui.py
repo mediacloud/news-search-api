@@ -21,6 +21,8 @@ config["title"] = (
 config["apiurl"] = os.getenv(
     "APIURL", config.get("apiurl", "http://localhost:8000/v1")
 ).rstrip("/")
+config["termfields"] = env_to_list("TERMFIELDS") or config.get("termfields", [])
+config["termaggrs"] = env_to_list("TERMAGGRS") or config.get("termaggrs", [])
 config["maxwc"] = int(os.getenv("MAXWC", config.get("maxwc", 30)))
 
 st.set_page_config(page_title=config["title"], layout="wide")
@@ -133,9 +135,9 @@ for i, (k, v) in enumerate(fmap.items()):
         tbs[0].altair_chart(c, use_container_width=True)
         tbs[1].write(ov[v])
 
-for fld in ["article_title", "text_content"]:
+for fld in config["termfields"]:
     cols = st.columns(3)
-    for i, aggr in enumerate(["top", "significant", "rare"]):
+    for i, aggr in enumerate(config["termaggrs"]):
         with cols[i]:
             tbs = st.tabs([f"{aggr} {fld} terms".title(), "Data"])
             tt = load_data(col, q, f"terms/{fld}/{aggr}")
