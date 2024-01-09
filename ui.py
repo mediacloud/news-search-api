@@ -14,16 +14,16 @@ from wordcloud import WordCloud
 from utils import env_to_list, load_config
 
 config = load_config()
-config["indexes"] = env_to_list("INDEXES") or config.get("indexes", [])
+
 config["title"] = (
     os.getenv("TITLE", config.get("title", "Collection Search API")) + " Explorer"
 )
 config["apiurl"] = os.getenv(
     "APIURL", config.get("apiurl", "http://localhost:8000/v1")
 ).rstrip("/")
+config["termfields"] = env_to_list("TERMFIELDS") or config.get("termfields", [])
+config["termaggrs"] = env_to_list("TERMAGGRS") or config.get("termaggrs", [])
 config["maxwc"] = int(os.getenv("MAXWC", config.get("maxwc", 30)))
-COLLECTIONS = [c.split(":")[-1] for c in config["indexes"]]
-
 
 st.set_page_config(page_title=config["title"], layout="wide")
 st.title(config["title"])
@@ -37,6 +37,16 @@ def load_data(cname, qstr, ep="search/overview"):
     if r.ok:
         return r.json()
     return None
+
+
+def load_collections():
+    r = requests.get(f"{config['apiurl']}/collections", timeout=60)
+    if r.ok:
+        return r.json()
+    return None
+
+
+COLLECTIONS = load_collections()
 
 
 qp = st.experimental_get_query_params()
@@ -125,9 +135,9 @@ for i, (k, v) in enumerate(fmap.items()):
         tbs[0].altair_chart(c, use_container_width=True)
         tbs[1].write(ov[v])
 
-for fld in ["article_title", "text_content"]:
+for fld in config["termfields"]:
     cols = st.columns(3)
-    for i, aggr in enumerate(["top", "significant", "rare"]):
+    for i, aggr in enumerate(config["termaggrs"]):
         with cols[i]:
             tbs = st.tabs([f"{aggr} {fld} terms".title(), "Data"])
             tt = load_data(col, q, f"terms/{fld}/{aggr}")
