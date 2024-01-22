@@ -327,4 +327,4 @@ class ApiTest(TestCase):
         assert response.status_code == 200
         assert results['total'] == 1 + int(NUMBER_OF_TEST_STORIES / 1000)
         for s in results['matches']:
-            assert s['publication_date'] == '[UNKNOWN]'
+            assert s['publication_date'] is None
