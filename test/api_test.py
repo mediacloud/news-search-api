@@ -316,3 +316,15 @@ class ApiTest(TestCase):
         assert len(url_list_take1) == len(url_list_take2)
         for idx in range(0, len(url_list_take2)):
             assert url_list_take1[idx] == url_list_take2[idx]
+
+    def test_no_pub_date(self):
+        response = self._client.post(
+            f"/v1/{INDEX_NAME}/search/overview",
+            json={"q": '"no publication date"'},
+            timeout=TIMEOUT,
+        )
+        results = response.json()
+        assert response.status_code == 200
+        assert results['total'] == 1 + int(NUMBER_OF_TEST_STORIES / 1000)
+        for s in results['matches']:
+            assert s['publication_date'] == '[UNKNOWN]'
