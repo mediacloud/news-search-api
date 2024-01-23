@@ -107,6 +107,8 @@ class ApiTest(TestCase):
                 json={"q": query, "page_size": page_size, "resume": next_page_token},
                 timeout=TIMEOUT,
             )
+            if response.status_code == 404:  # no more results
+                break
             assert response.status_code == 200
             results = response.json()
             assert len(results) > 0
