@@ -16,4 +16,4 @@ sentry-sdk[fastapi]==1.*
 mediacloud-metadata>=0.11.1
 pre-commit==3.6.*
 pytest==7.*
-httpx==0.25.*
+httpx==0.26.*
