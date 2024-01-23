@@ -310,20 +310,20 @@ def cs_paged_query(
 def format_match(hit: dict, base: str, collection: str, expanded: bool = False):
     src = hit["_source"]
     res = {
-        "article_title": src.get("article_title") or "[UNKNOWN]",
-        "normalized_article_title": src.get("normalized_article_title") or "[UNKNOWN]",
-        "publication_date": (src.get("publication_date") or "[UNKNOWN]")[:10],
-        "indexed_date": (src.get("indexed_date") or "[UNKNOWN]"),
-        "language": src.get("language") or "[UNKNOWN]",
-        "full_langauge": src.get("full_language") or "[UNKNOWN]",
-        "url": src.get("url") or "[UNKNOWN]",
-        "normalized_url": src.get("normalized_url") or "[UNKNOWN]",
-        "original_url": src.get("original_url") or "[UNKNOWN]",
-        "canonical_domain": src.get("canonical_domain") or "[UNKNOWN]",
+        "article_title": src.get("article_title"),
+        "normalized_article_title": src.get("normalized_article_title"),
+        "publication_date": src.get("publication_date")[:10] if src.get("publication_date") else None,
+        "indexed_date": src.get("indexed_date"),
+        "language": src.get("language"),
+        "full_langauge": src.get("full_language"),
+        "url": src.get("url"),
+        "normalized_url": src.get("normalized_url"),
+        "original_url": src.get("original_url"),
+        "canonical_domain": src.get("canonical_domain"),
     }
     if expanded:
-        res["text_content"] = src.get("text_content", "")
-        res["text_extraction"] = src.get("text_extraction", "")
+        res["text_content"] = src.get("text_content")
+        res["text_extraction"] = src.get("text_extraction")
     return res
 
 
