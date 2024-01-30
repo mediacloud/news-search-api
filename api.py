@@ -16,6 +16,8 @@ import sentry_sdk
 from sentry_sdk.integrations.starlette import StarletteIntegration
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 
+import mcmetadata.urls as urls
+
 from utils import assert_elasticsearch_connection, logger, load_config, env_to_list, env_to_dict, list_to_enum
 
 if os.getenv("SENTRY_DSN"):
@@ -110,7 +112,7 @@ app.add_middleware(
 @app.middleware("http")
 async def add_api_version_header(req: Request, call_next):
     res = await call_next(req)
-    res.headers["x-api-version"] = f"{req.app.version}"
+    res.headers["x-api-version"] = f"{req.app.version.value}"
     return res
 
 
@@ -526,14 +528,17 @@ def get_terms_via_payload(collection: Collection, payload: Query, field: TermFie
     return _get_terms(collection, payload.q, field.value, aggr.value)
 
 
-@v1.get("/{collection}/article/{id}", tags=["data"])
-@v1.head("/{collection}/article/{id}", include_in_schema=False)
-def get_article(collection: Collection, id: str, req: Request):  # pylint: disable=redefined-builtin
+@v1.get("/{collection}/article", tags=["data"])
+@v1.head("/{collection}/article", include_in_schema=False)
+def get_article(collection: Collection, q: str, req: Request):  # pylint: disable=redefined-builtin
     """
-    Fetch an individual article record by ID
+    Fetch an individual article record by ID. 
+    Record ID is a unique hash of the article url. 
+    We don't ship that ID to the user ever, so accept the url and regenerate it here. 
     """
+    id = urls.unique_url_hash(q)
     try:
-        hit = ES.get(index=collection.name, id=decode(id))
+        hit = ES.get(index=collection.name, id=id)
     except TransportError as e:
         raise HTTPException(status_code=404, detail=f"An article with ID {decode(id)} not found!") from e
     base = proxy_base_url(req)

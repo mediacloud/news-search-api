@@ -11,6 +11,7 @@ os.environ["INDEXES"] = INDEX_NAME
 os.environ["ESHOSTS"] = ELASTICSEARCH_URL
 os.environ["ELASTICSEARCH_INDEX_NAME_PREFIX"] = "mediacloud"
 from api import app
+import random
 
 TIMEOUT = 30
 
@@ -235,7 +236,7 @@ class ApiTest(TestCase):
 
     def test_sort_duplicate_pub_date(self):
         small_page_size = 20
-        query = "* AND publication_date:[2023-12-01 TO 2023-12-05]"
+        query = "*"
         # check enough stories
         response = self._client.post(f'/v1/{INDEX_NAME}/search/overview', json={"q": query}, timeout=TIMEOUT)
         assert response.status_code == 200
@@ -251,3 +252,24 @@ class ApiTest(TestCase):
         assert len(url_list_take1) == len(url_list_take2)
         for idx in range(0, len(url_list_take2)):
             assert url_list_take1[idx] == url_list_take2[idx]
+
+
+    def test_get_article_by_url(self):
+
+        #Do a full query to grab some samples
+        response = self._client.post(f'/v1/{INDEX_NAME}/search/result',
+                                     json={"q": "*"}, timeout=TIMEOUT)
+        
+        results = response.json()
+
+        #Test 10 random stories 
+        random.shuffle(results)
+        for test_story in results[:10]:
+
+            article_response = self._client.get(f'/v1/{INDEX_NAME}/article',
+                                params={"q": test_story["url"]}, timeout=TIMEOUT)
+            found_story = article_response.json()
+            assert test_story["article_title"] == found_story["article_title"]
+            assert 'text_content' in found_story
+            assert len(found_story['text_content']) > 0 
+        
