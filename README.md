@@ -2,7 +2,7 @@ Web Archive Search Index API and UI
 ===================================
 
 An API wrapper to the Elasticsearch index of web archival collections and a web UI to explore those
-indexes. A part of the [story-indexer stack](https://github.com/mediacloud/story-indexer). Maintained as a 
+indexes. A part of the [story-indexer stack](https://github.com/mediacloud/story-indexer). Maintained as a
 separate repository for future legibility.  This exposes an FastAPI-based API server and a Streamlit-based
 search UI (for quick testing). Both are managed as internal services as part of the Media Cloud Online News
 Archive.
@@ -11,7 +11,7 @@ Archive.
 
 The API service expects the following ES index schema, where `title` and `snippet` fields must have
 the `fielddata` enabled (if they have the type `text`). This is currently defined in the story-indexer
-stack, but is replicated here for convenience (but might be out of date). 
+stack, but is replicated here for convenience (but might be out of date).
 <details>
 
 ```json
@@ -60,14 +60,15 @@ Access an interactive API documentation and a collection index explorer in a web
 
 ## Building and Releasing
 
-Deployments are now configured to be automatically built and released via GitHub Actions. 
+Deployments are now configured to be automatically built and released via GitHub Actions.
 
 1. Change the version number stored in `ApiVersion.v1` in `api.py`
 2. Add a small note to the version history below indicating what changed
-3. Commit and tag the the repo with the same number
+3. Commit and tag the repo with the same number
 4. Push the tag to GitHub to trigger the build and release
 5. Once it is done, the labeled image will be ready at https://hub.docker.com/r/mcsystems/news-search-api
 
 ## Version History
 
-* __v1.0.0__ - First official release 
+* __v1.1.0__ - Change to return `None` when data is missing (including publication date), update dependencies
+* __v1.0.0__ - First official release
