@@ -301,7 +301,7 @@ class ApiTest(TestCase):
 
     def test_sort_duplicate_pub_date(self):
         small_page_size = 20
-        query = "*"
+        query = "* AND publication_date:[2023-12-01 TO 2023-12-05]"
         # check enough stories
         response = self._client.post(
             f"/v1/{INDEX_NAME}/search/overview", json={"q": query}, timeout=TIMEOUT
