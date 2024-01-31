@@ -331,12 +331,13 @@ class ApiTest(TestCase):
         # Test 10 random stories
         random.shuffle(results)
         for test_story in results[:10]:
+            print(test_story)
             article_response = self._client.get(
-                f"/v1/{INDEX_NAME}/article",
-                params={"q": test_story["url"]},
+                f"/v1/{INDEX_NAME}/article/{test_story['id']}",
                 timeout=TIMEOUT,
             )
             found_story = article_response.json()
+            print(found_story)
             assert test_story["article_title"] == found_story["article_title"]
             assert "text_content" in found_story
             assert len(found_story["text_content"]) > 0

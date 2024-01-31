@@ -2,7 +2,7 @@ altair==5.2.*
 elasticsearch==8.12.*
 fastapi==0.109.*
 matplotlib==3.8.*
-mediacloud-metadata>=0.11.2
+mediacloud-metadata==0.11.*
 pandas==2.2.*
 pydantic==2.5.*
 requests
