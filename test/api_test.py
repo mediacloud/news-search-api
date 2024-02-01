@@ -320,7 +320,7 @@ class ApiTest(TestCase):
         for idx in range(0, len(url_list_take2)):
             assert url_list_take1[idx] == url_list_take2[idx]
 
-    def test_get_article_by_url(self):
+    def test_get_article_by_id(self):
         # Do a full query to grab some samples
         response = self._client.post(
             f"/v1/{INDEX_NAME}/search/result", json={"q": "*"}, timeout=TIMEOUT
