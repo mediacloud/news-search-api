@@ -627,6 +627,7 @@ def get_article(
             "url",
             "normalized_url",
             "original_url",
+            "text_content",
         ],
         "query": {
             "match": {
