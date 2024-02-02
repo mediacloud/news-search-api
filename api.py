@@ -6,6 +6,7 @@ from enum import Enum
 from typing import Dict, Optional, TypeAlias, Union
 from urllib.parse import quote_plus
 
+import mcmetadata.urls as urls
 import sentry_sdk
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
@@ -312,7 +313,9 @@ def format_match(hit: dict, base: str, collection: str, expanded: bool = False):
     res = {
         "article_title": src.get("article_title"),
         "normalized_article_title": src.get("normalized_article_title"),
-        "publication_date": src.get("publication_date")[:10] if src.get("publication_date") else None,
+        "publication_date": src.get("publication_date")[:10]
+        if src.get("publication_date")
+        else None,
         "indexed_date": src.get("indexed_date"),
         "language": src.get("language"),
         "full_langauge": src.get("full_language"),
@@ -320,6 +323,7 @@ def format_match(hit: dict, base: str, collection: str, expanded: bool = False):
         "normalized_url": src.get("normalized_url"),
         "original_url": src.get("original_url"),
         "canonical_domain": src.get("canonical_domain"),
+        "id": urls.unique_url_hash(src.get("url")),
     }
     if expanded:
         res["text_content"] = src.get("text_content")
@@ -609,13 +613,14 @@ def get_article(
     collection: Collection, id: str, req: Request
 ):  # pylint: disable=redefined-builtin
     """
-    Fetch an individual article record by ID
+    Fetch an individual article record by ID.
     """
+
     try:
-        hit = ES.get(index=collection.name, id=decode(id))
+        hit = ES.get(index=collection.name, id=id)
     except TransportError as e:
         raise HTTPException(
-            status_code=404, detail=f"An article with ID {decode(id)} not found!"
+            status_code=404, detail=f"An article with ID {id} not found!"
         ) from e
     base = proxy_base_url(req)
     return format_match(hit, base, collection.name, True)  # type: ignore[arg-type]

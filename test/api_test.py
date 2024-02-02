@@ -1,5 +1,6 @@
 import datetime as dt
 import os
+import random
 from test import ELASTICSEARCH_URL, INDEX_NAME, NUMBER_OF_TEST_STORIES
 from unittest import TestCase
 
@@ -319,6 +320,28 @@ class ApiTest(TestCase):
         for idx in range(0, len(url_list_take2)):
             assert url_list_take1[idx] == url_list_take2[idx]
 
+    def test_get_article_by_id(self):
+        # Do a full query to grab some samples
+        response = self._client.post(
+            f"/v1/{INDEX_NAME}/search/result", json={"q": "*"}, timeout=TIMEOUT
+        )
+
+        results = response.json()
+
+        # Test 10 random stories
+        random.shuffle(results)
+        for test_story in results[:10]:
+            print(test_story)
+            article_response = self._client.get(
+                f"/v1/{INDEX_NAME}/article/{test_story['id']}",
+                timeout=TIMEOUT,
+            )
+            found_story = article_response.json()
+            print(found_story)
+            assert test_story["article_title"] == found_story["article_title"]
+            assert "text_content" in found_story
+            assert len(found_story["text_content"]) > 0
+
     def test_no_pub_date(self):
         response = self._client.post(
             f"/v1/{INDEX_NAME}/search/overview",
@@ -327,6 +350,6 @@ class ApiTest(TestCase):
         )
         results = response.json()
         assert response.status_code == 200
-        assert results['total'] == 1 + int(NUMBER_OF_TEST_STORIES / 1000)
-        for s in results['matches']:
-            assert s['publication_date'] is None
+        assert results["total"] == 1 + int(NUMBER_OF_TEST_STORIES / 1000)
+        for s in results["matches"]:
+            assert s["publication_date"] is None
