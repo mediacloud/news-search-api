@@ -615,9 +615,15 @@ def get_article(
     """
     Fetch an individual article record by ID.
     """
-
+    query = {
+        "query": {
+            "term": {
+            "_id": id
+            }
+        }
+    }
     try:
-        hit = ES.get(index=collection.name, id=id)
+        hit = ES.search(index=collection.name, body=query)
     except TransportError as e:
         raise HTTPException(
             status_code=404, detail=f"An article with ID {id} not found!"
