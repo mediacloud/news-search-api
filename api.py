@@ -616,11 +616,23 @@ def get_article(
     Fetch an individual article record by ID.
     """
     query = {
+        "_source": [
+            "article_title",
+            "normalized_article_title",
+            "publication_date",
+            "indexed_date",
+            "language",
+            "full_language",
+            "canonical_domain",
+            "url",
+            "normalized_url",
+            "original_url",
+        ],
         "query": {
-            "term": {
-            "_id": id
+            "match": {
+                "_id": id
             }
-        }
+        },
     }
     try:
         hit = ES.search(index=collection.name, body=query)
