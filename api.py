@@ -39,7 +39,7 @@ app = FastAPI()
 
 
 class ApiVersion(str, Enum):
-    v1 = "1.1.0"
+    v1 = "1.2.0"
 
 
 config = load_config()
