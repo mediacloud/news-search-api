@@ -615,8 +615,8 @@ def get_article(
     """
     Fetch an individual article record by ID.
     """
-    query = {
-        "_source": [
+    source = {
+        "includes": [
             "article_title",
             "normalized_article_title",
             "publication_date",
@@ -628,15 +628,12 @@ def get_article(
             "normalized_url",
             "original_url",
             "text_content",
-        ],
-        "query": {
-            "match": {
-                "_id": id
-            }
-        },
+        ]
     }
+    query = {"match": {"_id": id}}
+
     try:
-        res = ES.search(index=collection.name, body=query)
+        res = ES.search(index=collection.name, source=source, query=query)
         hit = res["hits"]["hits"][0]
     except TransportError as e:
         raise HTTPException(
