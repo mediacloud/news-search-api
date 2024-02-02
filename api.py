@@ -634,10 +634,17 @@ def get_article(
 
     try:
         res = ES.search(index=collection.name, source=source, query=query)
-        hit = res["hits"]["hits"][0]
+        hits = res["hits"]["hits"]
+        if len(hits) > 0:
+            hit = hits[0]
+        else:
+            raise HTTPException(
+                status_code=404, detail=f"An article with ID {id} not found!"
+            )
     except TransportError as e:
         raise HTTPException(
-            status_code=404, detail=f"An article with ID {id} not found!"
+            status_code=500,
+            detail=f"An error occured when searching for article with ID {id}",
         ) from e
     base = proxy_base_url(req)
     return format_match(hit, base, collection.name, True)  # type: ignore[arg-type]
