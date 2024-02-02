@@ -635,7 +635,8 @@ def get_article(
         },
     }
     try:
-        hit = ES.search(index=collection.name, body=query)
+        res = ES.search(index=collection.name, body=query)
+        hit = res["hits"]["hits"][0]
     except TransportError as e:
         raise HTTPException(
             status_code=404, detail=f"An article with ID {id} not found!"
