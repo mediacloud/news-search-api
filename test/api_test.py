@@ -85,7 +85,7 @@ class ApiTest(TestCase):
         assert len(results) == 1000
         next_page_token = response.headers.get("x-resume-token")
         assert next_page_token is not None
-        # now try with cusotm page size
+        # now try with custom page size
         response = self._client.post(
             f"/v1/{INDEX_NAME}/search/result",
             json={"q": "*", "page_size": 23},
@@ -96,6 +96,22 @@ class ApiTest(TestCase):
         assert len(results) == 23
         next_page_token = response.headers.get("x-resume-token")
         assert next_page_token is not None
+
+    def test_paging_tokens_unique(self):
+        prior_tokens = []
+        page_size = 23  # something small so we get lots of pages
+        next_page_token = None
+        while True:
+            response = self._client.post(
+                f"/v1/{INDEX_NAME}/search/result",
+                json={"q": "*", "page_size": page_size, 'resume': next_page_token},
+                timeout=TIMEOUT,
+            )
+            next_page_token = response.headers.get("x-resume-token")
+            assert next_page_token not in prior_tokens
+            if next_page_token is None:
+                break
+            prior_tokens.append(next_page_token)
 
     def _get_all_stories(self, page_size: int, query: str = "*"):
         more_stories = True
