@@ -83,7 +83,11 @@ def get_allowed_collections():
         for index in ES.indices.get(index="*")
         if index.startswith(ELASTICSEARCH_INDEX_NAME_PREFIX)
     ]
-    all_indexes.append(f"{ELASTICSEARCH_INDEX_NAME_PREFIX}_*")
+    for alias in ES.indices.get_alias():
+        if alias not in all_indexes:
+            all_indexes.append(alias)
+    all_indexes.append(f"{ELASTICSEARCH_INDEX_NAME_PREFIX}-*")
+
     logger.info(f"Exposed indices: {all_indexes}")
     return all_indexes
 
