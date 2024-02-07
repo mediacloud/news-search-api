@@ -615,37 +615,23 @@ def get_article(
     """
     Fetch an individual article record by ID.
     """
-    source = {
-        "includes": [
-            "article_title",
-            "normalized_article_title",
-            "publication_date",
-            "indexed_date",
-            "language",
-            "full_language",
-            "canonical_domain",
-            "url",
-            "normalized_url",
-            "original_url",
-            "text_content",
-        ]
-    }
+    source = cs_basic_query(id, expanded=True)
     query = {"match": {"_id": id}}
 
     try:
         res = ES.search(index=collection.name, source=source, query=query)
         hits = res["hits"]["hits"]
-        if len(hits) > 0:
-            hit = hits[0]
-        else:
-            raise HTTPException(
-                status_code=404, detail=f"An article with ID {id} not found!"
-            )
-    except TransportError as e:
+    except (TransportError, TypeError, KeyError) as e:
         raise HTTPException(
             status_code=500,
             detail=f"An error occured when searching for article with ID {id}",
         ) from e
+    if len(hits) > 0:
+        hit = hits[0]
+    else:
+        raise HTTPException(
+            status_code=404, detail=f"An article with ID {id} not found!"
+        )
     base = proxy_base_url(req)
     return format_match(hit, base, collection.name, True)  # type: ignore[arg-type]
 
