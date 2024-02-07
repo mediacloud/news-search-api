@@ -615,7 +615,7 @@ def get_article(
     """
     Fetch an individual article record by ID.
     """
-    source = cs_basic_query(id, expanded=True)
+    source = {"includes": cs_basic_query(id, expanded=True)["_source"]}
     query = {"match": {"_id": id}}
 
     try:
