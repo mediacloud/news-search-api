@@ -85,7 +85,7 @@ def get_allowed_collections():
     ]
     for aliases in ES.indices.get_alias().values():
         #returns: {"index_name":{"aliases":{"alias_name":{"is_write_index":bool}}}}
-        for alians in aliases["aliases"].keys():
+        for alias in aliases["aliases"].keys():
            if alias not in all_indexes:
                all_indexes.append(alias)
     all_indexes.append(f"{ELASTICSEARCH_INDEX_NAME_PREFIX}-*")
