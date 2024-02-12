@@ -69,7 +69,7 @@ Deployments are now configured to be automatically built and released via GitHub
 5. Once it is done, the labeled image will be ready at https://hub.docker.com/r/mcsystems/news-search-api
 
 ## Version History
-
+* __v1.3.1__ - Bugfix for 1.3.0
 * __v1.3.0__ - Change to return aliases as well as indexes as legal values in Collections, and update article endpoint to work in the ILM context
 * __v1.2.0__ - Change related to ID update in backend ES, including refurbishing the article endpoint and tests 
 * __v1.1.0__ - Change to return `None` when data is missing (including publication date), update dependencies
