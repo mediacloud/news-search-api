@@ -1,6 +1,6 @@
 services:
   api:
-    image: mcsystems/news-search-api:{IMAGE_TAG}
+    image: codeforafrica/news-search-api:{IMAGE_TAG}
     build: .
     ports:
       - 8000:8000
@@ -10,7 +10,7 @@ services:
       - .:/app
 
   ui:
-    image: mcsystems/news-search-api:{IMAGE_TAG}
+    image: codeforafrica/news-search-api:{IMAGE_TAG}
     build: .
     environment:
       APIURL: http://api:8000/v1
