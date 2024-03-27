@@ -28,4 +28,3 @@ networks:
   story-indexer:
     name: story-indexer
     external: true
-
