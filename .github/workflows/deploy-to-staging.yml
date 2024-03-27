@@ -1,5 +1,4 @@
 # name: Build and Deploy to Staging
-
 on:
   push:
     branches:
@@ -43,10 +42,11 @@ jobs:
                     TERMAGGRS=${{ env.TERMAGGRS }}
                 context: .
                 platforms: linux/amd64,linux/arm64
-                cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache
-                cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache,mode=max
                 push: true
                 tags: "${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
+                cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
+                cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+
 
             - name: Deploy Docker Compose
               uses: appleboy/ssh-action@master
