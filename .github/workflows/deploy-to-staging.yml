@@ -5,9 +5,8 @@ on:
       - staging
 
 env:
-    REGISTRY: "indexer.docker.io"
     IMAGE_TAG: "staging"
-    IMAGE_NAME: "codeforafrica/news-search-api"
+    IMAGE_NAME: "mcsystems/news-search-api"
     INDEXES: "mc_search"
     ESHOSTS: "http://localhost:9200"
     TERMFIELDS: "article_title,text_content"
@@ -44,16 +43,20 @@ jobs:
                 platforms: linux/amd64,linux/arm64
                 push: true
                 tags: "${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
-                cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache
-                cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:buildcache,mode=max
+                #registry defaults to dockerhub
+                cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+                cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
 
 
             - name: Deploy Docker Compose
               uses: appleboy/ssh-action@master
+              env:
+                IMAGE_TAG: ${{ env.IMAGE_TAG }}
               with:
                 host: ${{ secrets.SSH_SERVER_IP }}
                 username: ${{ secrets.SSH_USERNAME }}
                 key: ${{ secrets.SSH_PRIVATE_KEY }}
+                envs: IMAGE_TAG
                 script: |
                     mkdir -p /news-search-api
                     scp docker-compose.yml ${{ env.SSH_USERNAME}}@${{ env.SERVER_IP}}:/news-search-api
