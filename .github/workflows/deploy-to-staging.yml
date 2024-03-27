@@ -6,6 +6,7 @@ on:
       - staging
 
 env:
+    REGISTRY: "hub.docker.com"
     IMAGE_TAG: "staging"
     IMAGE_NAME: "codeforafrica/news-search-api"
     INDEXES: "mc_search"
@@ -42,18 +43,20 @@ jobs:
                     TERMAGGRS=${{ env.TERMAGGRS }}
                 context: .
                 platforms: linux/amd64,linux/arm64
+                cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache
+                cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cache,mode=max
                 push: true
                 tags: "${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}"
 
             - name: Deploy Docker Compose
-              env:
-                SSH_USERNAME: ${{ secrets.SSH_USERNAME }}
-                SERVER_IP: ${{ secrets.SSH_SERVER_IP }}
-              run: |
-                scp docker-compose.yml ${{ env.SSH_USERNAME}}@${{ env.SERVER_IP}}:/news-search-api
-
-                ssh ${{ env.SSH_USERNAME}}@${{ env.SERVER_IP }} << EOF
-                    cd /news-search-api/
+              uses: appleboy/ssh-action@master
+              with:
+                host: ${{ secrets.SSH_SERVER_IP }}
+                username: ${{ secrets.SSH_USERNAME }}
+                key: ${{ secrets.SSH_PRIVATE_KEY }}
+                script: |
+                    mkdir -p /news-search-api
+                    scp docker-compose.yml ${{ env.SSH_USERNAME}}@${{ env.SERVER_IP}}:/news-search-api
+                    cd /news-search-api
                     docker-compose pull
                     docker-compose up -d
-                EOF
