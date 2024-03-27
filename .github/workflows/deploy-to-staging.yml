@@ -5,7 +5,7 @@ on:
       - staging
 
 env:
-    REGISTRY: "hub.docker.com"
+    REGISTRY: "indexer.docker.io"
     IMAGE_TAG: "staging"
     IMAGE_NAME: "codeforafrica/news-search-api"
     INDEXES: "mc_search"
