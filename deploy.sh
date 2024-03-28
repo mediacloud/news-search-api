@@ -3,7 +3,7 @@
 
 # Environment variables
 
-IMAGE_TAG="staging"  # Change this based on your use case
+IMAGE_TAG="latest"  # Change this based on your use case
 INDEXES="mc_search"
 ESHOSTS="http://ramos.angwin:9200,http://woodward.angwin:9200,http://bradley.angwin:9200"
 ESOPTS="{'timeout': 60, 'max_retries': 3}" # 'timeout' parameter is deprecated
@@ -40,7 +40,7 @@ while getopts :h:t optname; do
             help
             exit 2
             ;;
-        *)
+        \?)
             echo "Invalid option: $1"
             help
             exit 2
@@ -49,7 +49,7 @@ while getopts :h:t optname; do
 done
 
 # Create a directory for private configuration
-PRIVATE_CONF_DIR="/news_search_api"
+PRIVATE_CONF_DIR="news_search_api"
 rm -rf "$PRIVATE_CONF_DIR"
 mkdir -p "$PRIVATE_CONF_DIR"
 chmod go-rwx "$PRIVATE_CONF_DIR"
