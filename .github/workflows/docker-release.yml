@@ -2,22 +2,23 @@ name: Build Docker Image for Every Tag
 
 on:
   push:
+    branches:
+      - 'staging'
     tags:
       - '**'
+env:
+    IMAGE_NAME: "mcsystems/news-search-api"
 
 jobs:
 
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout Version
         uses: actions/checkout@v4
 
       - name: Dump tag name
-        run: echo "Building tag ${{github.ref_name}}"
+        run: echo "Building ${{ github.ref_type }} ${{ github.ref_name }}"
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -31,10 +32,22 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Determine Tag
+        id: tag
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ] && [ "${{ github.ref }}" != "refs/heads/staging" ]; then
+            echo "::set-output name=tag_name::${{ github.ref_name }}"
+          else
+            echo "::set-output name=tag_name::staging"
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: mcsystems/news-search-api:${{github.ref_name}}
+          tags: ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag_name }}
+          #registry defaults to dockerhub
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
