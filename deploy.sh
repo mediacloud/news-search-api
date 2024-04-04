@@ -13,12 +13,17 @@ TERMAGGRS="top,significant,rare"
 APP_NAME="news-search-api"
 
 # Check if running as root
-if [[ $UID -ne 0 ]]; then
-    echo "This script must be run as root."
-    exit 1
-fi
+is_root() {
+    if [ $(whoami) != "root" ]; then
+        echo "This script must be run as root."
+        exit 1
+    fi
+}
 
-LOGIN_USER=$(whoami)
+is_root
+echo "Running as root"
+
+LOGIN_USER=$(who am i | awk '{ print $1 }')
 if [ "x$LOGIN_USER" = x ]; then
     # XXX fall back to whoami (look by uid)
     echo could not find login user 1>&2
@@ -26,11 +31,8 @@ if [ "x$LOGIN_USER" = x ]; then
 fi
 
 run_as_login_user() {
-    if [ $(whoami) = root ]; then
+    is_root
 	su $LOGIN_USER -c "$*"
-    else
-	$*
-    fi
 }
 
 help()
@@ -75,7 +77,7 @@ rm -rf "$PRIVATE_CONF_DIR"
 mkdir -p "$PRIVATE_CONF_DIR"
 chmod go-rwx "$PRIVATE_CONF_DIR"
 CONFIG_REPO_PREFIX=$(zzz tvg@tvguho.pbz:zrqvnpybhq)
-CONFIG_REPO_NAME=$(zzz fgbel-vaqrkre-pbasvt)
+CONFIG_REPO_NAME=$(zzz arjf-frnepu-ncv-pbasvt)
 echo cloning $CONFIG_REPO_NAME repo 1>&2
 if ! run_as_login_user "git clone $CONFIG_REPO_PREFIX/$CONFIG_REPO_NAME.git" >/dev/null 2>&1; then
 echo "FATAL: could not clone config repo" 1>&2
@@ -100,7 +102,7 @@ GH_REPO_PREFIX="https://github.com/mediacloud"
 GH_REPO_NAME="news-search-api"
 DOCKER_COMPOSE_FILE="docker-compose.yml"
 echo "Fetching $DOCKER_COMPOSE_FILE from $GH_REPO_NAME repo..."
-if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/main/$DOCKER_COMPOSE_FILE" -o "$INSTALL_DIR/$DOCKER_COMPOSE_FILE"; then
+if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$IMAGE_TAG/$DOCKER_COMPOSE_FILE" -o "$INSTALL_DIR/$DOCKER_COMPOSE_FILE"; then
     echo "FATAL: Could not fetch $DOCKER_COMPOSE_FILE from config repo"
     exit 1
 
