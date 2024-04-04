@@ -7,7 +7,7 @@ on:
     tags:
       - '**'
 env:
-    IMAGE_NAME: "mcsystems/news-search-api"
+    IMAGE_NAME: "codeforafrica/news-search-api"
     BETA_VERSION: "b1"
 
 jobs:
