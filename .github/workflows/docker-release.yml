@@ -7,7 +7,8 @@ on:
     tags:
       - '**'
 env:
-    IMAGE_NAME: "codeforafrica/news-search-api"
+    IMAGE_NAME: "mcsystems/news-search-api"
+    BETA_VERSION: "b1"
 
 jobs:
 
@@ -32,14 +33,16 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Determine Tag
-        id: tag
-        run: |
-          if [ "${{ github.ref_type }}" = "tag" ] && [ "${{ github.ref }}" != "refs/heads/staging" ]; then
-            echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag_name=staging" >> $GITHUB_OUTPUT
-          fi
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v3
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=tag
+            type=sha
+            type=raw,value=staging-${{ env.BETA_VERSION }},enable=${{ endsWith(github.ref, 'staging') }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -47,7 +50,8 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.IMAGE_NAME }}:${{ steps.tag.outputs.tag_name }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           #registry defaults to dockerhub
           cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
           cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
