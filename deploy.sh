@@ -5,7 +5,7 @@
 
 IMAGE_TAG="latest"  # Change this based on deployment (staging, production, v1.0) - Reference tags in new-search-api Repo
 INDEXES="mc_search"
-ESHOSTS="http://ramos.angwin:9200,http://woodward.angwin:9200,http://bradley.angwin:9200"
+ESHOSTS="" #source from private config repo
 ESOPTS="{'timeout': 60, 'max_retries': 3}" # 'timeout' parameter is deprecated
 ELASTICSEARCH_INDEX_NAME_PREFIX="mc_search-*"
 TERMFIELDS="article_title,text_content"
