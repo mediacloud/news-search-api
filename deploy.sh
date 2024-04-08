@@ -31,7 +31,6 @@ if [ "x$LOGIN_USER" = x ]; then
 fi
 
 run_as_login_user() {
-    is_root
 	su $LOGIN_USER -c "$*"
 }
 

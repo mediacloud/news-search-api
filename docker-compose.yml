@@ -4,8 +4,6 @@ services:
     build: .
     ports:
       - 8000:8000
-    networks:
-      - new-search-api
     volumes:
       - .:/app
 
@@ -16,14 +14,8 @@ services:
       APIURL: http://api:8000/v1
     ports:
       - 8501:8501
-    networks:
-      - new-search-api
     volumes:
       - .:/app
     depends_on:
       - api
     command: streamlit run ui.py
-
-networks:
-  new-search-api:
-    name: new-search-api
