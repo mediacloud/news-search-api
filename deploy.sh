@@ -3,7 +3,7 @@
 
 # Environment variables
 
-IMAGE_TAG="latest"  # Change this based on deployment (staging, production, v1.0)
+IMAGE_TAG="latest"  # Change this based on deployment (staging, production, v1.0) - Reference tags in new-search-api Repo
 INDEXES="mc_search"
 ESHOSTS="http://ramos.angwin:9200,http://woodward.angwin:9200,http://bradley.angwin:9200"
 ESOPTS="{'timeout': 60, 'max_retries': 3}" # 'timeout' parameter is deprecated
