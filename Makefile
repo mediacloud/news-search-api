@@ -9,8 +9,5 @@ up:
 down:
 	docker-compose down
 
-publish:
-	docker push mcsystems/news-search-api:staging
-
 bash:
-	docker-compose exec api bash
+	docker-compose exec api sh
