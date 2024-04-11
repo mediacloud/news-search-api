@@ -3,7 +3,7 @@
 
 # Environment variables
 
-IMAGE_TAG="latest"  # Change this based on deployment (staging, production, v1.0) - Reference tags in new-search-api Repo
+IMAGE_TAG="v1.3.1"  # Change this based on deployment (staging, production, v1.0) - Reference tags in new-search-api Repo
 INDEXES="mc_search"
 ESHOSTS="" #source from private config repo
 ESOPTS="{'timeout': 60, 'max_retries': 3}" # 'timeout' parameter is deprecated
@@ -52,23 +52,34 @@ zzz() {
 }
 
 # Parse command-line options
-while getopts :h:t optname; do
-    log "Option $optname set with value ${OPTARG}"
-    case $optname in
-        t)
-            IMAGE_TAG=${OPTARG}
+while (( "$#" )); do
+    case "$1" in
+        -t|--tag)
+            if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
+                IMAGE_TAG=$2
+                shift 2
+            else
+                echo "Error: Argument for $1 is missing" >&2
+                exit 1
+            fi
             ;;
-        h)
+        -h|--help)
             help
-            exit 2
+            exit 0
             ;;
-        \?)
-            echo "Invalid option: $1"
+        -*|--*=) # unsupported flags
+            echo "Error: Unsupported flag $1" >&2
             help
-            exit 2
+            exit 1
+            ;;
+        *) # preserve positional arguments
+            PARAMS="$PARAMS $1"
+            shift
             ;;
     esac
 done
+
+eval set -- "$PARAMS"
 
 # Create a directory for private configuration
 PRIVATE_CONF_DIR="news_search_api_config"
@@ -104,7 +115,6 @@ echo "Fetching $DOCKER_COMPOSE_FILE from $GH_REPO_NAME repo..."
 if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$IMAGE_TAG/$DOCKER_COMPOSE_FILE" -o "$INSTALL_DIR/$DOCKER_COMPOSE_FILE"; then
     echo "FATAL: Could not fetch $DOCKER_COMPOSE_FILE from config repo"
     exit 1
-
 fi
 
 # Deploy services using Docker Compose
