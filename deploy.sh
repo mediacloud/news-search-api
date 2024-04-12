@@ -121,7 +121,4 @@ fi
 echo "Deploying services with image tag: $IMAGE_TAG"
 docker-compose -f "$INSTALL_DIR/$DOCKER_COMPOSE_FILE" up -d
 
-# Additional steps (e.g., database migrations, cache clearing, etc.)
-# ...
-
 echo "Deployment completed successfully!"
