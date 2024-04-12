@@ -3,7 +3,6 @@
 
 # Environment variables
 
-IMAGE_TAG="v1.3.1"  # Change this based on deployment (staging, production, v1.0) - Reference tags in new-search-api Repo
 INDEXES="mc_search"
 ESHOSTS="" #source from private config repo
 ESOPTS="{'timeout': 60, 'max_retries': 3}" # 'timeout' parameter is deprecated
@@ -11,6 +10,18 @@ ELASTICSEARCH_INDEX_NAME_PREFIX="mc_search-*"
 TERMFIELDS="article_title,text_content"
 TERMAGGRS="top,significant,rare"
 APP_NAME="news-search-api"
+
+# Check if running on a checked-out tag
+check_tag() {
+    if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
+        return 0
+    else
+        echo "This script must be run on a checked-out tag."
+        exit 1
+    fi
+}
+
+check_tag
 
 # Check if running as root
 is_root() {
@@ -38,9 +49,13 @@ help()
 {
     echo "Usage: ./deploy.sh [options]"
     echo "Options:"
-    echo "-h show help message"
-    echo "-t specify the image tag (staging, release, v1.3.1 e.t.c)"
+    echo "-h, --help    Show this help message"
+    echo ""
+    echo "This script deploys the News Search API and UI. It must be run on a checked-out git tag."
+    echo "The script will use the checked-out git tag as the image tag for deployment."
+    echo "If the script is not run on a checked-out git tag, it will exit with an error message."
 }
+
 
 log()
 {
@@ -51,18 +66,15 @@ zzz() {
     echo $1 | tr 'A-Za-z' 'N-ZA-Mn-za-m'
 }
 
+get_git_tag() {
+    git describe --tags --abbrev=0
+}
+
+IMAGE_TAG=$(get_git_tag)
+
 # Parse command-line options
 while (( "$#" )); do
     case "$1" in
-        -t|--tag)
-            if [ -n "$2" ] && [ ${2:0:1} != "-" ]; then
-                IMAGE_TAG=$2
-                shift 2
-            else
-                echo "Error: Argument for $1 is missing" >&2
-                exit 1
-            fi
-            ;;
         -h|--help)
             help
             exit 0
