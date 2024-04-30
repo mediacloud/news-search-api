@@ -2,13 +2,6 @@
 # deploy.sh - Deployment script for News Search API and UI
 
 # Environment variables
-
-INDEXES="mc_search"
-ESHOSTS="" #source from private config repo
-ESOPTS="{'timeout': 60, 'max_retries': 3}" # 'timeout' parameter is deprecated
-ELASTICSEARCH_INDEX_NAME_PREFIX="mc_search-*"
-TERMFIELDS="article_title,text_content"
-TERMAGGRS="top,significant,rare"
 APP_NAME="news-search-api"
 
 # Check if running as root
@@ -135,6 +128,15 @@ if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$IMAGE_TAG/$DOCKER_COMPOSE_FI
     echo "FATAL: Could not fetch $DOCKER_COMPOSE_FILE from config repo"
     exit 1
 fi
+
+export INDEXES="mc_search"
+export ESOPTS="{'timeout': 60, 'max_retries': 3}" # 'timeout' parameter is deprecated
+export ELASTICSEARCH_INDEX_NAME_PREFIX="mc_search-*"
+export TERMFIELDS="article_title,text_content"
+export TERMAGGRS="top,significant,rare"
+export IMAGE_TAG=${IMAGE_TAG}
+export ESHOSTS=${ESHOSTS}
+export SENTRY_DSN=${SENTRY_DSN}
 
 # Deploy services using Docker Compose
 echo "Deploying services with image tag: $IMAGE_TAG"
