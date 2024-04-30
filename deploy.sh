@@ -92,14 +92,22 @@ esac
 
 IMAGE_TAG=$(git describe --tags --abbrev=0)
 
+PRIVATE_CONF_DIR="news-search-private-conf"
+rm -rf $PRIVATE_CONF_DIR
+run_as_login_user mkdir -p $PRIVATE_CONF_DIR
+chmod go-rwx $PRIVATE_CONF_DIR
+
+cd $PRIVATE_CONF_DIR
 CONFIG_REPO_PREFIX=$(zzz tvg@tvguho.pbz:zrqvnpybhq)
 CONFIG_REPO_NAME=$(zzz arjf-frnepu-ncv-pbasvt)
+PRIVATE_CONF_REPO=$(pwd)/$CONFIG_REPO_NAME
+
 echo cloning $CONFIG_REPO_NAME repo 1>&2
 if ! run_as_login_user "git clone $CONFIG_REPO_PREFIX/$CONFIG_REPO_NAME.git" >/dev/null 2>&1; then
     echo "FATAL: could not clone config repo" 1>&2
     exit 1
 fi
-PRIVATE_CONF_REPO=$(pwd)/$CONFIG_REPO_NAME
+
 PRIVATE_CONF_FILE=$PRIVATE_CONF_REPO/$APP_NAME.$ENV_FILE.sh
 cd ..
 
@@ -110,17 +118,18 @@ fi
 #source private conf to load SENTRY_DSN
 . $PRIVATE_CONF_FILE
 
-GH_REPO_PREFIX="https://github.com/mediacloud"
-GH_REPO_NAME="news-search-api"
+GH_REPO_PREFIX=$(zzz uggcf://tvguho.pbz/zrqvnpybhq)
+GH_REPO_NAME=$(zzz arjf-frnepu-ncv)
 DOCKER_COMPOSE_FILE="docker-compose.yml"
+mv -f docker-compose.yml docker-compose-old.yml
 echo "Fetching $DOCKER_COMPOSE_FILE from $GH_REPO_NAME repo..."
-if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$IMAGE_TAG/$DOCKER_COMPOSE_FILE" -o "$CONFIG_REPO_PREFIX/$DOCKER_COMPOSE_FILE"; then
+if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$IMAGE_TAG/$DOCKER_COMPOSE_FILE" -o "$(pwd)/$DOCKER_COMPOSE_FILE"; then
     echo "FATAL: Could not fetch $DOCKER_COMPOSE_FILE from config repo"
     exit 1
 fi
 
 # Deploy services using Docker Compose
 echo "Deploying services with image tag: $IMAGE_TAG"
-docker compose -f "$CONFIG_REPO_PREFIX/$DOCKER_COMPOSE_FILE" up -d
+docker compose -f "$(pwd)/$DOCKER_COMPOSE_FILE" up -d
 
 echo "Deployment completed successfully!"
