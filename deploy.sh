@@ -110,21 +110,17 @@ fi
 #source private conf to load SENTRY_DSN
 . $PRIVATE_CONF_FILE
 
-
-INSTALL_DIR="news_search_api"
-mkdir -p "$INSTALL_DIR"
-
 GH_REPO_PREFIX="https://github.com/mediacloud"
 GH_REPO_NAME="news-search-api"
 DOCKER_COMPOSE_FILE="docker-compose.yml"
 echo "Fetching $DOCKER_COMPOSE_FILE from $GH_REPO_NAME repo..."
-if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$IMAGE_TAG/$DOCKER_COMPOSE_FILE" -o "$INSTALL_DIR/$DOCKER_COMPOSE_FILE"; then
+if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$IMAGE_TAG/$DOCKER_COMPOSE_FILE" -o "$CONFIG_REPO_PREFIX/$DOCKER_COMPOSE_FILE"; then
     echo "FATAL: Could not fetch $DOCKER_COMPOSE_FILE from config repo"
     exit 1
 fi
 
 # Deploy services using Docker Compose
 echo "Deploying services with image tag: $IMAGE_TAG"
-docker compose -f "$INSTALL_DIR/$DOCKER_COMPOSE_FILE" up -d
+docker compose -f "$CONFIG_REPO_PREFIX/$DOCKER_COMPOSE_FILE" up -d
 
 echo "Deployment completed successfully!"
