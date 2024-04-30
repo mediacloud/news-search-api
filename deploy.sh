@@ -11,14 +11,6 @@ TERMFIELDS="article_title,text_content"
 TERMAGGRS="top,significant,rare"
 APP_NAME="news-search-api"
 
-# Check if running on a checked-out tag
-if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
-    return 0
-else
-    echo "This script must be run on a checked-out tag."
-    exit 1
-fi
-
 # Check if running as root
 if [ $(whoami) != "root" ]; then
     echo "This script must be run as root."
@@ -43,6 +35,7 @@ help()
     echo "Usage: ./deploy.sh [options]"
     echo "Options:"
     echo "-h, --help    Show this help message"
+    echo "-d, --deployment-type  Specify the deployment type (staging or production)"
     echo ""
     echo "This script deploys the News Search API and UI. It must be run on a checked-out git tag."
     echo "The script will use the checked-out git tag as the image tag for deployment."
@@ -58,8 +51,6 @@ log()
 zzz() {
     echo $1 | tr 'A-Za-z' 'N-ZA-Mn-za-m'
 }
-
-IMAGE_TAG=$(git describe --tags --abbrev=0)
 
 # Parse command-line options
 while (( "$#" )); do
@@ -88,16 +79,20 @@ eval set -- "$PARAMS"
 
 case "$DEPLOYMENT_TYPE" in
     staging)
-        ENV_FILE=".staging"
+        ENV_FILE="staging"
         ;;
     production)
-        ENV_FILE=".prod"
+        ENV_FILE="prod"
         ;;
     *)
         echo "Error: Invalid deployment type. Specify either 'staging' or 'prod'."
         exit 1
         ;;
 esac
+
+IMAGE_TAG=$(git describe --tags --abbrev=0)
+
+
 
 # Create a directory for private configuration
 PRIVATE_CONF_DIR="news_search_api_config"

@@ -36,7 +36,7 @@ jobs:
         with:
           images: ${{ env.IMAGE_NAME }}
           tags: |
-            type=ref,event=tag,enable=${{ startsWith(github.ref, 'refs/tags/') }}
+            type=pep40,pattern={{version}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
