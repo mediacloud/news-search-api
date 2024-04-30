@@ -12,26 +12,19 @@ TERMAGGRS="top,significant,rare"
 APP_NAME="news-search-api"
 
 # Check if running on a checked-out tag
-check_tag() {
-    if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
-        return 0
-    else
-        echo "This script must be run on a checked-out tag."
-        exit 1
-    fi
-}
-
-check_tag
+if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
+    return 0
+else
+    echo "This script must be run on a checked-out tag."
+    exit 1
+fi
 
 # Check if running as root
-is_root() {
-    if [ $(whoami) != "root" ]; then
-        echo "This script must be run as root."
-        exit 1
-    fi
-}
+if [ $(whoami) != "root" ]; then
+    echo "This script must be run as root."
+    exit 1
+fi
 
-is_root
 echo "Running as root"
 
 LOGIN_USER=$(who am i | awk '{ print $1 }')
@@ -66,11 +59,7 @@ zzz() {
     echo $1 | tr 'A-Za-z' 'N-ZA-Mn-za-m'
 }
 
-get_git_tag() {
-    git describe --tags --abbrev=0
-}
-
-IMAGE_TAG=$(get_git_tag)
+IMAGE_TAG=$(git describe --tags --abbrev=0)
 
 # Parse command-line options
 while (( "$#" )); do
@@ -78,6 +67,10 @@ while (( "$#" )); do
         -h|--help)
             help
             exit 0
+            ;;
+        -d|--deployment-type)
+            shift
+            DEPLOYMENT_TYPE="$1"
             ;;
         -*|--*=) # unsupported flags
             echo "Error: Unsupported flag $1" >&2
@@ -93,6 +86,19 @@ done
 
 eval set -- "$PARAMS"
 
+case "$DEPLOYMENT_TYPE" in
+    staging)
+        ENV_FILE=".staging"
+        ;;
+    production)
+        ENV_FILE=".prod"
+        ;;
+    *)
+        echo "Error: Invalid deployment type. Specify either 'staging' or 'prod'."
+        exit 1
+        ;;
+esac
+
 # Create a directory for private configuration
 PRIVATE_CONF_DIR="news_search_api_config"
 rm -rf "$PRIVATE_CONF_DIR"
@@ -102,11 +108,11 @@ CONFIG_REPO_PREFIX=$(zzz tvg@tvguho.pbz:zrqvnpybhq)
 CONFIG_REPO_NAME=$(zzz arjf-frnepu-ncv-pbasvt)
 echo cloning $CONFIG_REPO_NAME repo 1>&2
 if ! run_as_login_user "git clone $CONFIG_REPO_PREFIX/$CONFIG_REPO_NAME.git" >/dev/null 2>&1; then
-echo "FATAL: could not clone config repo" 1>&2
-exit 1
+    echo "FATAL: could not clone config repo" 1>&2
+    exit 1
 fi
 PRIVATE_CONF_REPO=$(pwd)/$CONFIG_REPO_NAME
-PRIVATE_CONF_FILE=$PRIVATE_CONF_REPO/$APP_NAME.sh
+PRIVATE_CONF_FILE=$PRIVATE_CONF_REPO/$APP_NAME/$ENV_FILE.sh
 cd ..
 
 if [ ! -f $PRIVATE_CONF_FILE ]; then
