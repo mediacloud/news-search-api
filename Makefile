@@ -12,7 +12,6 @@ deploy:
 api-exec:
 	docker-compose exec api sh
 
-# dev-deploy
-# I would want to deploy the containers in dev
-dev-deploy:
-	IMAGE_TAG=$(IMAGE_TAG) docker-compose up -d
+# (local) development
+up:
+	IMAGE_TAG=$(IMAGE_TAG) docker-compose up --build -d
