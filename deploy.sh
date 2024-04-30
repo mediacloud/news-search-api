@@ -19,6 +19,14 @@ fi
 
 echo "Running as root"
 
+# Check if running on a checked-out tag
+if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
+    echo "Running on a checked-out tag: $(git describe --tags --abbrev=0)"
+else
+    echo "This script must be run on a checked-out tag."
+    exit 1
+fi
+
 LOGIN_USER=$(who am i | awk '{ print $1 }')
 if [ "x$LOGIN_USER" = x ]; then
     # XXX fall back to whoami (look by uid)

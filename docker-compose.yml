@@ -1,7 +1,13 @@
 services:
   api:
     image: mcsystems/news-search-api:${IMAGE_TAG}
-    build: .
+    environment:
+      INDEXES: ${INDEXES}
+      ESHOSTS: ${ESHOSTS}
+      ESOPTS: ${ESOPTS}
+      ELASTICSEARCH_INDEX_NAME_PREFIX: ${ELASTICSEARCH_INDEX_NAME_PREFIX}
+      TERMFIELDS: ${TERMFIELDS}
+      TERMAGGRS: ${TERMAGGRS}
     ports:
       - 8000:8000
     volumes:
@@ -9,7 +15,6 @@ services:
 
   ui:
     image: mcsystems/news-search-api:${IMAGE_TAG}
-    build: .
     environment:
       APIURL: http://api:8000/v1
     ports:
