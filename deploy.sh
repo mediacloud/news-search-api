@@ -92,13 +92,6 @@ esac
 
 IMAGE_TAG=$(git describe --tags --abbrev=0)
 
-
-
-# Create a directory for private configuration
-PRIVATE_CONF_DIR="news_search_api_config"
-rm -rf "$PRIVATE_CONF_DIR"
-mkdir -p "$PRIVATE_CONF_DIR"
-chmod go-rwx "$PRIVATE_CONF_DIR"
 CONFIG_REPO_PREFIX=$(zzz tvg@tvguho.pbz:zrqvnpybhq)
 CONFIG_REPO_NAME=$(zzz arjf-frnepu-ncv-pbasvt)
 echo cloning $CONFIG_REPO_NAME repo 1>&2
@@ -132,6 +125,6 @@ fi
 
 # Deploy services using Docker Compose
 echo "Deploying services with image tag: $IMAGE_TAG"
-docker-compose -f "$INSTALL_DIR/$DOCKER_COMPOSE_FILE" up -d
+docker compose -f "$INSTALL_DIR/$DOCKER_COMPOSE_FILE" up -d
 
 echo "Deployment completed successfully!"
