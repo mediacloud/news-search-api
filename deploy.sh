@@ -130,7 +130,7 @@ if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$IMAGE_TAG/$DOCKER_COMPOSE_FI
 fi
 
 export INDEXES="mc_search"
-export ESOPTS="{'timeout': 60, 'max_retries': 3}" # 'timeout' parameter is deprecated
+export ESOPTS='{"timeout": 60, "max_retries": 3}' # 'timeout' parameter is deprecated
 export ELASTICSEARCH_INDEX_NAME_PREFIX="mc_search-*"
 export TERMFIELDS="article_title,text_content"
 export TERMAGGRS="top,significant,rare"
