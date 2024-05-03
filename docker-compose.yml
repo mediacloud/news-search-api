@@ -9,7 +9,7 @@ services:
       TERMFIELDS: ${TERMFIELDS}
       TERMAGGRS: ${TERMAGGRS}
     ports:
-      - 8000:8000
+      - ${API_PORT}:8000
     volumes:
       - .:/app
 
@@ -18,7 +18,7 @@ services:
     environment:
       APIURL: http://api:8000/v1
     ports:
-      - 8501:8501
+      - ${UI_PORT}:8501
     volumes:
       - .:/app
     depends_on:

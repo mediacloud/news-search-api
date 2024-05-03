@@ -3,6 +3,8 @@
 
 # Environment variables
 APP_NAME="news-search-api"
+API_PORT_BASE=8000
+UI_PORT_BASE=8501
 
 # Check if running as root
 if [ $(whoami) != "root" ]; then
@@ -36,7 +38,7 @@ help()
     echo "Usage: ./deploy.sh [options]"
     echo "Options:"
     echo "-h, --help    Show this help message"
-    echo "-d, --deployment-type  Specify the deployment type (staging or production)"
+    echo "-d, --deployment-type  Specify the deployment type (dev, staging or production)"
     echo ""
     echo "This script deploys the News Search API and UI. It must be run on a checked-out git tag."
     echo "The script will use the checked-out git tag as the image tag for deployment."
@@ -79,14 +81,26 @@ done
 eval set -- "$PARAMS"
 
 case "$DEPLOYMENT_TYPE" in
+    dev)
+        API_PORT=$(expr $API_PORT_BASE + 100)
+        UI_PORT=$(expr $UI_PORT_BASE + 100)
+        PROJECT_NAME="$LOGIN_USER-dev"
+        ENV_FILE="dev"
+        ;;
     staging)
+        API_PORT=$(expr $API_PORT_BASE + 200)
+        UI_PORT=$(expr $UI_PORT_BASE + 200)
+        PROJECT_NAME="staging"
         ENV_FILE="staging"
         ;;
     production)
+        API_PORT=$(expr $API_PORT_BASE)
+        UI_PORT=$(expr $UI_PORT_BASE)
+        PROJECT_NAME="prod"
         ENV_FILE="prod"
         ;;
     *)
-        echo "Error: Invalid deployment type. Specify either 'staging' or 'prod'."
+        echo "Error: Invalid deployment type. Specify either 'dev', 'staging' or 'prod'."
         exit 1
         ;;
 esac
@@ -137,9 +151,11 @@ export TERMAGGRS="top,significant,rare"
 export IMAGE_TAG=${IMAGE_TAG}
 export ESHOSTS=${ESHOSTS}
 export SENTRY_DSN=${SENTRY_DSN}
+export API_PORT=${API_PORT}
+export UI_PORT=${UI_PORT}
 
 # Deploy services using Docker Compose
-echo "Deploying services with image tag: $IMAGE_TAG"
-docker compose -f "$(pwd)/$DOCKER_COMPOSE_FILE" up -d
+echo "Deploying services with image, project name: $PROJECT_NAME &  tag: $IMAGE_TAG"
+docker compose -f "$(pwd)/$DOCKER_COMPOSE_FILE" -p "$PROJECT_NAME" up -d
 
 echo "Deployment completed successfully!"
