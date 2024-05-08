@@ -71,14 +71,8 @@ while (( "$#" )); do
             help
             exit 1
             ;;
-        *) # preserve positional arguments
-            PARAMS="$PARAMS $1"
-            shift
-            ;;
     esac
 done
-
-eval set -- "$PARAMS"
 
 case "$DEPLOYMENT_TYPE" in
     dev)
@@ -94,8 +88,8 @@ case "$DEPLOYMENT_TYPE" in
         ENV_FILE="staging"
         ;;
     production)
-        API_PORT=$(expr $API_PORT_BASE)
-        UI_PORT=$(expr $UI_PORT_BASE)
+        API_PORT=$API_PORT_BASE
+        UI_PORT=$UI_PORT_BASE
         PROJECT_NAME="prod"
         ENV_FILE="prod"
         ;;
@@ -148,11 +142,11 @@ export ESOPTS='{"timeout": 60, "max_retries": 3}' # 'timeout' parameter is depre
 export ELASTICSEARCH_INDEX_NAME_PREFIX="mc_search-*"
 export TERMFIELDS="article_title,text_content"
 export TERMAGGRS="top,significant,rare"
-export IMAGE_TAG=${IMAGE_TAG}
 export ESHOSTS=${ESHOSTS}
 export SENTRY_DSN=${SENTRY_DSN}
 export API_PORT=${API_PORT}
 export UI_PORT=${UI_PORT}
+export IMAGE_TAG
 
 # Deploy services using Docker Compose
 echo "Deploying services with image, project name: $PROJECT_NAME &  tag: $IMAGE_TAG"

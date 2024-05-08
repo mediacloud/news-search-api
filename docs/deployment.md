@@ -50,8 +50,8 @@ sudo ./deploy.sh -d prod
 
 A `dev` deployment creates a docker compose project prefixed with the logged_in user, as
 
-``` docker compose -p $"LOGIN-USER-dev" up -d```
+``` sudo docker compose -p $"LOGIN-USER-dev" up -d```
 
 To cleanup a dev deployment, run the command
 
-``` docker compose down -p $"LOGIN-USER-dev" ```
+``` sudo docker compose down -p $"LOGIN-USER-dev" ```
