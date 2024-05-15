@@ -6,16 +6,16 @@ DEPLOY_TYPE?=dev
 
 # stop containers
 down:
-	sudo docker compose down
+	docker compose down
 
 # run the deploy script, passing in deployment type
 deploy:
-	sudo ./deploy.sh -d $(DEPLOY_TYPE)
+	./deploy.sh -d $(DEPLOY_TYPE)
 
 # exec into api container
 shell:
-	sudo docker compose exec api sh
+	docker compose exec api sh
 
 # (local) development
 up:
-	IMAGE_TAG=$(IMAGE_TAG) sudo docker compose up --build -d
+	IMAGE_TAG=$(IMAGE_TAG) docker compose up --build -d
