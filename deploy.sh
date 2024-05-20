@@ -55,8 +55,14 @@ while (( "$#" )); do
             exit 0
             ;;
         -d|--deployment-type)
-            shift
-            DEPLOYMENT_TYPE="$1"
+            if [ -n "$2" ]; then
+                DEPLOYMENT_TYPE="$2"
+                shift 2
+            else
+                echo "Error: --deployment-type requires an argument." >&2
+                help
+                exit 1
+            fi
             ;;
         -*|--*=) # unsupported flags
             echo "Error: Unsupported flag $1" >&2
@@ -73,6 +79,7 @@ case "$DEPLOYMENT_TYPE" in
         PROJECT_NAME="$LOGIN_USER-dev"
         ENV_FILE="dev"
         IMAGE_TAG="latest"
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         ;;
     staging)
         API_PORT=$(expr $API_PORT_BASE + 200)
@@ -132,9 +139,16 @@ fi
 GH_REPO_PREFIX=$(zzz uggcf://tvguho.pbz/zrqvnpybhq)
 GH_REPO_NAME=$(zzz arjf-frnepu-ncv)
 DOCKER_COMPOSE_FILE="docker-compose.yml"
+
+if [ "$DEPLOYMENT_TYPE" = "dev" ]; then
+    BRANCH_OR_TAG="$CURRENT_BRANCH"
+else
+    BRANCH_OR_TAG="$IMAGE_TAG"
+fi
+
 mv -f docker-compose.yml docker-compose-old.yml
 echo "Fetching $DOCKER_COMPOSE_FILE from $GH_REPO_NAME repo..."
-if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$IMAGE_TAG/$DOCKER_COMPOSE_FILE" -o "$(pwd)/$DOCKER_COMPOSE_FILE"; then
+if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$BRANCH_OR_TAG/$DOCKER_COMPOSE_FILE" -o "$(pwd)/$DOCKER_COMPOSE_FILE"; then
     echo "FATAL: Could not fetch $DOCKER_COMPOSE_FILE from config repo"
     exit 1
 fi
