@@ -14,14 +14,6 @@ fi
 
 echo "Running as root"
 
-# Check if running on a checked-out tag
-if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
-    echo "Running on a checked-out tag: $(git describe --tags --abbrev=0)"
-else
-    echo "This script must be run on a checked-out tag."
-    exit 1
-fi
-
 LOGIN_USER=$(who am i | awk '{ print $1 }')
 if [ "x$LOGIN_USER" = x ]; then
     # XXX fall back to whoami (look by uid)
@@ -80,6 +72,7 @@ case "$DEPLOYMENT_TYPE" in
         UI_PORT=$(expr $UI_PORT_BASE + 100)
         PROJECT_NAME="$LOGIN_USER-dev"
         ENV_FILE="dev"
+        IMAGE_TAG="latest"
         ;;
     staging)
         API_PORT=$(expr $API_PORT_BASE + 200)
@@ -99,7 +92,16 @@ case "$DEPLOYMENT_TYPE" in
         ;;
 esac
 
-IMAGE_TAG=$(git describe --tags --abbrev=0)
+# Check if running on a checked-out tag (staging/prod)
+if [ "$DEPLOYMENT_TYPE" != "dev" ]; then
+    if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
+        echo "Running on a checked-out tag: $(git describe --tags --abbrev=0)"
+        IMAGE_TAG=$(git describe --tags --abbrev=0)
+    else
+        echo "This script must be run on a checked-out tag."
+        exit 1
+    fi
+fi
 
 PRIVATE_CONF_DIR="news-search-private-conf"
 rm -rf $PRIVATE_CONF_DIR
@@ -149,7 +151,10 @@ export UI_PORT=${UI_PORT}
 export IMAGE_TAG
 
 # Deploy services using Docker Compose
-echo "Deploying services with image, project name: $PROJECT_NAME &  tag: $IMAGE_TAG"
-docker compose -f "$(pwd)/$DOCKER_COMPOSE_FILE" -p "$PROJECT_NAME" up -d
-
+echo "Deploying services with image, project name: $PROJECT_NAME & tag: $IMAGE_TAG"
+if [ "$DEPLOYMENT_TYPE" = "dev" ]; then
+    docker compose -f "$(pwd)/$DOCKER_COMPOSE_FILE" -p "$PROJECT_NAME" up --build -d
+else
+    docker compose -f "$(pwd)/$DOCKER_COMPOSE_FILE" -p "$PROJECT_NAME" up -d
+fi
 echo "Deployment completed successfully!"

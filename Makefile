@@ -15,7 +15,3 @@ deploy:
 # exec into api container
 shell:
 	docker compose exec api sh
-
-# (local) development
-up:
-	IMAGE_TAG=$(IMAGE_TAG) docker compose up --build -d
