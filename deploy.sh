@@ -5,6 +5,7 @@
 APP_NAME="news-search-api"
 API_PORT_BASE=8000
 UI_PORT_BASE=8501
+IMAGE_TAG="latest"
 
 # Check if running as root
 if [ $(whoami) != "root" ]; then
@@ -30,6 +31,7 @@ help()
     echo "Usage: ./deploy.sh [options]"
     echo "Options:"
     echo "-h, --help    Show this help message"
+    echo "-a, --use-latest-image Allow deployment without requiring a checked-out tag, uses 'latest' as image tag (only for dev)"
     echo "-d, --deployment-type  Specify the deployment type (dev, staging or production)"
     echo ""
     echo "This script deploys the News Search API and UI. It must be run on a checked-out git tag."
@@ -47,6 +49,12 @@ zzz() {
     echo $1 | tr 'A-Za-z' 'N-ZA-Mn-za-m'
 }
 
+if [ $# -eq 0 ]; then
+    help
+    exit 1
+fi
+
+USE_LATEST_IMAGE=false
 # Parse command-line options
 while (( "$#" )); do
     case "$1" in
@@ -64,6 +72,10 @@ while (( "$#" )); do
                 exit 1
             fi
             ;;
+        -a|--use-latest-image)
+            USE_LATEST_IMAGE=true
+            shift
+            ;;
         -*|--*=) # unsupported flags
             echo "Error: Unsupported flag $1" >&2
             help
@@ -72,14 +84,17 @@ while (( "$#" )); do
     esac
 done
 
+if $USE_LATEST_IMAGE && [ "$DEPLOYMENT_TYPE" != "dev" ]; then
+    echo "Error: The -a option is only allowed for 'dev' deployment type."
+    exit 1
+fi
+
 case "$DEPLOYMENT_TYPE" in
     dev)
         API_PORT=$(expr $API_PORT_BASE + 100)
         UI_PORT=$(expr $UI_PORT_BASE + 100)
         PROJECT_NAME="$LOGIN_USER-dev"
         ENV_FILE="dev"
-        IMAGE_TAG="latest"
-        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         ;;
     staging)
         API_PORT=$(expr $API_PORT_BASE + 200)
@@ -100,7 +115,7 @@ case "$DEPLOYMENT_TYPE" in
 esac
 
 # Check if running on a checked-out tag (staging/prod)
-if [ "$DEPLOYMENT_TYPE" != "dev" ]; then
+if ! $USE_LATEST_IMAGE; then
     if git describe --exact-match --tags HEAD >/dev/null 2>&1; then
         echo "Running on a checked-out tag: $(git describe --tags --abbrev=0)"
         IMAGE_TAG=$(git describe --tags --abbrev=0)
@@ -140,10 +155,10 @@ GH_REPO_PREFIX=$(zzz uggcf://tvguho.pbz/zrqvnpybhq)
 GH_REPO_NAME=$(zzz arjf-frnepu-ncv)
 DOCKER_COMPOSE_FILE="docker-compose.yml"
 
-if [ "$DEPLOYMENT_TYPE" = "dev" ]; then
-    BRANCH_OR_TAG="$CURRENT_BRANCH"
+if $USE_LATEST_IMAGE; then
+    BRANCH_OR_TAG=$(git rev-parse --abbrev-ref HEAD)
 else
-    BRANCH_OR_TAG="$IMAGE_TAG"
+    BRANCH_OR_TAG=$IMAGE_TAG
 fi
 
 mv -f docker-compose.yml docker-compose-old.yml
@@ -166,7 +181,7 @@ export IMAGE_TAG
 
 # Deploy services using Docker Compose
 echo "Deploying services with image, project name: $PROJECT_NAME & tag: $IMAGE_TAG"
-if [ "$DEPLOYMENT_TYPE" = "dev" ]; then
+if [ "$DEPLOYMENT_TYPE" = "dev" ] && $USE_LATEST_IMAGE; then
     docker compose -f "$(pwd)/$DOCKER_COMPOSE_FILE" -p "$PROJECT_NAME" up --build -d
 else
     docker compose -f "$(pwd)/$DOCKER_COMPOSE_FILE" -p "$PROJECT_NAME" up -d

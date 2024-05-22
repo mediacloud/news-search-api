@@ -50,7 +50,7 @@ commas or spaces as separators. Configuration via a config file in the syntax of
 Then run the API and UI services using Docker Compose:
 
 ```
-$ make up
+$ docker compose up --build
 ```
 
 Access an interactive API documentation and a collection index explorer in a web browser:

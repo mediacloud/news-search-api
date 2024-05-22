@@ -26,8 +26,8 @@ A staging/production deployment expects to connect to an external Elasticsearch 
 
 ### Local Development
 
-Deployment in the dev environment can be done using the `Makefile` command `make up`.
-For development purposes all our images are build and tagged with the `latest` tags, as initialized in the Makefile.
+Deployment in the dev environment can be done using the `sudo ./deploy.sh -a -d dev` command.
+For development purposes all our images are build and tagged with the `latest` tags.
 
 ## Dev, Staging & Production
 
@@ -54,4 +54,4 @@ A `dev` deployment creates a docker compose project prefixed with the logged_in 
 
 To cleanup a dev deployment, run the command
 
-``` sudo docker compose down -p $"LOGIN-USER-dev" ```
+``` sudo docker compose -p $"LOGIN-USER-dev" down ```
