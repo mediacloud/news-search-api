@@ -125,24 +125,23 @@ if ! $USE_LATEST_IMAGE; then
     fi
 fi
 
-PRIVATE_CONF_DIR="news-search-private-conf"
-rm -rf $PRIVATE_CONF_DIR
-run_as_login_user mkdir -p $PRIVATE_CONF_DIR
-chmod go-rwx $PRIVATE_CONF_DIR
-
-cd $PRIVATE_CONF_DIR
-CONFIG_REPO_PREFIX=$(zzz tvg@tvguho.pbz:zrqvnpybhq)
-CONFIG_REPO_NAME=$(zzz arjf-frnepu-ncv-pbasvt)
-PRIVATE_CONF_REPO=$(pwd)/$CONFIG_REPO_NAME
-
-echo cloning $CONFIG_REPO_NAME repo 1>&2
-if ! run_as_login_user "git clone $CONFIG_REPO_PREFIX/$CONFIG_REPO_NAME.git" >/dev/null 2>&1; then
-    echo "FATAL: could not clone config repo" 1>&2
-    exit 1
-fi
-
 case "$DEPLOYMENT_TYPE" in
 staging,production)
+    PRIVATE_CONF_DIR="news-search-private-conf"
+    rm -rf $PRIVATE_CONF_DIR
+    run_as_login_user mkdir -p $PRIVATE_CONF_DIR
+    chmod go-rwx $PRIVATE_CONF_DIR
+
+    cd $PRIVATE_CONF_DIR
+    CONFIG_REPO_PREFIX=$(zzz tvg@tvguho.pbz:zrqvnpybhq)
+    CONFIG_REPO_NAME=$(zzz arjf-frnepu-ncv-pbasvt)
+    PRIVATE_CONF_REPO=$(pwd)/$CONFIG_REPO_NAME
+
+    echo cloning $CONFIG_REPO_NAME repo 1>&2
+    if ! run_as_login_user "git clone $CONFIG_REPO_PREFIX/$CONFIG_REPO_NAME.git" >/dev/null 2>&1; then
+        echo "FATAL: could not clone config repo" 1>&2
+        exit 1
+    fi
     PRIVATE_CONF_FILE=$PRIVATE_CONF_REPO/$APP_NAME.$ENV_FILE.sh
     cd ..
     ;;
@@ -181,11 +180,11 @@ export ESOPTS='{"timeout": 60, "max_retries": 3}' # 'timeout' parameter is depre
 export ELASTICSEARCH_INDEX_NAME_PREFIX="mc_search-*"
 export TERMFIELDS="article_title,text_content"
 export TERMAGGRS="top,significant,rare"
-export ESHOSTS=${ESHOSTS}
-export SENTRY_DSN=${SENTRY_DSN}
-export SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}
-export API_PORT=${API_PORT}
-export UI_PORT=${UI_PORT}
+export API_PORT
+export UI_PORT
+export ESHOSTS
+export SENTRY_DSN
+export SENTRY_ENVIRONMENT
 export IMAGE_TAG
 
 # Deploy services using Docker Compose

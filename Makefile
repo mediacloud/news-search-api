@@ -1,7 +1,7 @@
 .PHONY: down deploy shell
 
-#setup image tag to latest for dev
-DEPLOY_TYPE?=dev
+#deploy.sh args (-a, -d)
+ARGS?=
 
 # stop containers
 down:
@@ -9,7 +9,7 @@ down:
 
 # run the deploy script, passing in deployment type
 deploy:
-	./deploy.sh -d $(DEPLOY_TYPE)
+	./deploy.sh $(ARGS)
 
 # exec into api container
 shell:
