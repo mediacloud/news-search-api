@@ -141,8 +141,16 @@ if ! run_as_login_user "git clone $CONFIG_REPO_PREFIX/$CONFIG_REPO_NAME.git" >/d
     exit 1
 fi
 
-PRIVATE_CONF_FILE=$PRIVATE_CONF_REPO/$APP_NAME.$ENV_FILE.sh
-cd ..
+case "$DEPLOYMENT_TYPE" in
+staging,production)
+    PRIVATE_CONF_FILE=$PRIVATE_CONF_REPO/$APP_NAME.$ENV_FILE.sh
+    cd ..
+    ;;
+dev)
+    PRIVATE_CONF_FILE=./dev.sh
+    ;;
+esac
+
 
 if [ ! -f $PRIVATE_CONF_FILE ]; then
     echo "FATAL: could not access $PRIVATE_CONF_FILE" 1>&2
@@ -175,6 +183,7 @@ export TERMFIELDS="article_title,text_content"
 export TERMAGGRS="top,significant,rare"
 export ESHOSTS=${ESHOSTS}
 export SENTRY_DSN=${SENTRY_DSN}
+export SENTRY_ENVIRONMENT=${SENTRY_ENVIRONMENT}
 export API_PORT=${API_PORT}
 export UI_PORT=${UI_PORT}
 export IMAGE_TAG

@@ -1,7 +1,6 @@
-.PHONY: down deploy shell up
+.PHONY: down deploy shell
 
 #setup image tag to latest for dev
-IMAGE_TAG?=latest
 DEPLOY_TYPE?=dev
 
 # stop containers
