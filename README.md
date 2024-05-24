@@ -71,6 +71,14 @@ Deployments are now configured to be automatically built and released via GitHub
 ## Version History
 * __v1.3.1__ - Bugfix for 1.3.0
 * __v1.3.0__ - Change to return aliases as well as indexes as legal values in Collections, and update article endpoint to work in the ILM context
-* __v1.2.0__ - Change related to ID update in backend ES, including refurbishing the article endpoint and tests 
+* __v1.2.0__ - Change related to ID update in backend ES, including refurbishing the article endpoint and tests
 * __v1.1.0__ - Change to return `None` when data is missing (including publication date), update dependencies
 * __v1.0.0__ - First official release
+
+### Tags for dev and staging releases
+
+Append the suffix `a` for a dev/alpha release and `b` for a staging/beta release.
+e.g
+
+* __v1.3.2b__ - Version 1.3.2 beta release
+* __v1.3.2a__ - Version 1.3.2 alpha release
