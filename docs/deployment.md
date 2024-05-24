@@ -14,6 +14,10 @@ Before you begin, ensure you have the following prerequisites in place:
 
 ## Deployment
 
+The `news-search-api` deployment are done using the `deploy.sh` script. `deploy.sh` expects deployments to be done from a checked out git tag. However, for a local development run, `deploy.sh` provides `-a` option to run `news-search-api` from current git branch even if the branch doesn't contain a checked out tag. A Docker image tagged `latest` will be created in this case.
+
+This image is neither meant to be pushed to docker hub nor used for staging/prod deployments.
+
 ### deploy.sh options
 
 ```
