@@ -149,7 +149,6 @@ staging|production)
         echo "FATAL: could not access $PRIVATE_CONF_FILE" 1>&2
         exit 1
     fi
-    #source private conf to load SENTRY_DSN
     . $PRIVATE_CONF_FILE
 
     ;;
