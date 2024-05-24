@@ -75,7 +75,7 @@ Deployments are now configured to be automatically built and released via GitHub
 * __v1.1.0__ - Change to return `None` when data is missing (including publication date), update dependencies
 * __v1.0.0__ - First official release
 
-### Tags for dev and release
+### Tags for dev and staging releases
 
 Append the suffix `a` for a dev/alpha release and `b` for a staging/beta release.
 e.g
