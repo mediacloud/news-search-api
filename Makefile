@@ -6,7 +6,7 @@ down:
 
 # run the deploy script, for prod,dev and staging environments
 prod:
-	./deploy.sh -d production
+	./deploy.sh -d prod
 
 staging:
 	./deploy.sh -d staging
