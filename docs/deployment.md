@@ -67,7 +67,7 @@ make production
 
 All deployments use distinct [project names](https://docs.docker.com/compose/project-name/) to make them easily distinguishable. `dev` deployments use logged_in user prefix and `-dev` suffix (to allow multiple deployments from different users on the same machine), while staging and production uses `staging` and `prod` project names respectively.
 
-To cleanup dev compose project
+To cleanup/shutdown `news-search-api` deployment, use the following command:
 
 ``` sudo docker compose -p <project_name> down ```
 
