@@ -9,7 +9,7 @@ Before you begin, ensure you have the following prerequisites in place:
 
 ### Dev, Staging & production
 
-A staging/production deployment expects to connect to an external Elasticsearch cluster, with the Elasticsearch urls provides as the env variable `ESHOSTS`
+3. Elasticsearch Cluster: A news-search-api deployment expects to connect to an external Elasticsearch cluster. The URLs to the cluster must be provide via the environment variable `ESHOSTS`
 
 
 ## Deployment
