@@ -150,22 +150,7 @@ staging|prod)
     ;;
 esac
 
-GH_REPO_PREFIX=$(zzz uggcf://tvguho.pbz/zrqvnpybhq)
-GH_REPO_NAME=$(zzz arjf-frnepu-ncv)
 DOCKER_COMPOSE_FILE="docker-compose.yml"
-
-if $USE_LATEST_IMAGE; then
-    BRANCH_OR_TAG=$(git rev-parse --abbrev-ref HEAD)
-else
-    BRANCH_OR_TAG=$IMAGE_TAG
-fi
-
-mv -f docker-compose.yml docker-compose-old.yml
-echo "Fetching $DOCKER_COMPOSE_FILE from $GH_REPO_NAME repo..."
-if ! curl -sSfL "$GH_REPO_PREFIX/$GH_REPO_NAME/raw/$BRANCH_OR_TAG/$DOCKER_COMPOSE_FILE" -o "$(pwd)/$DOCKER_COMPOSE_FILE"; then
-    echo "FATAL: Could not fetch $DOCKER_COMPOSE_FILE from config repo"
-    exit 1
-fi
 
 export INDEXES="mc_search"
 export ESOPTS='{"timeout": 60, "max_retries": 3}' # 'timeout' parameter is deprecated
