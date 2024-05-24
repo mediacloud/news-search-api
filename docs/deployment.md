@@ -69,7 +69,10 @@ All deployments use distinct [project names](https://docs.docker.com/compose/pro
 
 To cleanup/shutdown `news-search-api` deployment, use the following command:
 
-``` sudo docker compose -p <project_name> down ```
+```sudo docker compose -p <project_name> down```
+
+To cleanup a dev deployment by user `johndoe`, run the command:
+```sudo docker compose -p johndoe-dev down```
 
 To cleanup a staging & production deployments, run the commands
 
