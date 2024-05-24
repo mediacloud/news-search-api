@@ -65,7 +65,7 @@ make production
 
 ### Cleanup
 
-A `dev` deployment creates a docker compose project prefixed with the logged_in user, while staging and production creates project_names `staging` and `production`
+All deployments use distinct [project names](https://docs.docker.com/compose/project-name/) to make them easily distinguishable. `dev` deployments use logged_in user prefix and `-dev` suffix (to allow multiple deployments from different users on the same machine), while staging and production uses `staging` and `prod` project names respectively.
 
 To cleanup dev compose project
 
