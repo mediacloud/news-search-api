@@ -31,10 +31,7 @@ Options:
 
 ### Local Development
 
-Deployment in the dev environment can be done using the `deploy.sh` script.
-The `deploy.sh` script expects us to deploy from a checked out tag, however for a deploy in development, we can use the `latest` tag to build our images.
-The News Search API expects to connect to an Elasticsearch cluster. The staging & production deployments source the Elasticsearch cluster URL via `ESHOSTS` in the private configuration files.
-In Dev deployment, export your ESHOSTS using the command
+To do a dev deployment, first export your `ESHOSTS` using the command
 
 `export ESHOSTS="http://localhost:9200"`
 
