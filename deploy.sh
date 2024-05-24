@@ -24,11 +24,7 @@ help()
     echo "Options:"
     echo "-h, --help             Show this help message"
     echo "-a, --use-latest-image Allow deployment without requiring a checked-out tag, uses 'latest' as image tag (only for dev)"
-    echo "-d, --deployment-type  Specify the deployment type (dev, staging or production)"
-    echo ""
-    echo "This script deploys the News Search API and UI. It must be run on a checked-out git tag for staging and production deployments."
-    echo "The script will use the checked-out git tag as the image tag for deployment.In dev deployment you can use -a option for latest tag"
-    echo "If the script is not run on a checked-out git tag, it will exit with an error message."
+    echo "-d, --deployment-type  Specify the deployment type (dev, staging or prod)"
 }
 
 log()
@@ -102,7 +98,7 @@ case "$DEPLOYMENT_TYPE" in
         PROJECT_NAME="staging"
         ENV_FILE="staging"
         ;;
-    production)
+    prod)
         API_PORT=$API_PORT_BASE
         UI_PORT=$UI_PORT_BASE
         PROJECT_NAME="prod"
@@ -126,9 +122,8 @@ if ! $USE_LATEST_IMAGE; then
 fi
 
 case "$DEPLOYMENT_TYPE" in
-staging|production)
+staging|prod)
     PRIVATE_CONF_DIR="news-search-private-conf"
-    rm -rf $PRIVATE_CONF_DIR
     run_as_login_user mkdir -p $PRIVATE_CONF_DIR
     chmod go-rwx $PRIVATE_CONF_DIR
 
@@ -149,8 +144,9 @@ staging|production)
         echo "FATAL: could not access $PRIVATE_CONF_FILE" 1>&2
         exit 1
     fi
-    . $PRIVATE_CONF_FILE
 
+    . $PRIVATE_CONF_FILE
+    rm -rf $PRIVATE_CONF_DIR
     ;;
 esac
 
