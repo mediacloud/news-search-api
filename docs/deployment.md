@@ -51,8 +51,6 @@ make dev
 
 All `news-search-api` images are built and pushed to Docker Hub using Github Action [workflow](../.github/workflows/docker-release.yml). The git tags should conform to [PEP 440](https://peps.python.org/pep-0440/). Further instructions on release and tagging available on the [README.md](../README.md)
 
-When deploying a staging or production environment, use the `deploy.sh` script available [here](./deploy.sh).
-The docker images for each of the stages are tagged with the git tag. The tagging should conform to [PEP 440](https://peps.python.org/pep-0440/). Further instructions on release and tagging available [here](../README.md)
 
 For a staging deployment
 ```
