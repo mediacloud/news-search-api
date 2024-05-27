@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # deploy.sh - Deployment script for News Search API and UI
 
 # Environment variables
@@ -44,9 +44,8 @@ if [ $# -eq 0 ]; then
 fi
 
 USE_LATEST_IMAGE=false
-BUILD_IMAGE="--no-build"
 # Parse command-line options
-while (( "$#" )); do
+while [ "$#" -gt 0 ]; do
     case "$1" in
         -h|--help)
             help
@@ -64,18 +63,11 @@ while (( "$#" )); do
             ;;
         -a|--use-latest-image)
             USE_LATEST_IMAGE=true
-            BUILD_IMAGE="--build"
             shift
             ;;
         -R|--replicas)
-            if [[ "$2" =~ ^[0-9]+$ ]]; then
-                API_REPLICAS="$2"
-                shift 2
-            else
-                echo "Error: --replicas requires a numerical argument." >&2
-                help
-                exit 1
-            fi
+            API_REPLICAS="$2"
+            shift 2
             ;;
         -*|--*=) # unsupported flags
             echo "Error: Unsupported flag $1" >&2
@@ -102,18 +94,18 @@ case "$DEPLOYMENT_TYPE" in
     dev)
         API_PORT=$(expr $API_PORT_BASE + 100)
         UI_PORT=$(expr $UI_PORT_BASE + 100)
-        STACK_NAME="$APP_NAME-$LOGIN_USER-dev"
+        STACK_NAME="$LOGIN_USER-$APP_NAME"
         ;;
     staging)
         API_PORT=$(expr $API_PORT_BASE + 200)
         UI_PORT=$(expr $UI_PORT_BASE + 200)
-        STACK_NAME="$APP_NAME-staging"
+        STACK_NAME="staging-$APP_NAME"
         ENV_FILE="staging"
         ;;
     prod)
         API_PORT=$API_PORT_BASE
         UI_PORT=$UI_PORT_BASE
-        STACK_NAME="$APP_NAME-prod"
+        STACK_NAME="$APP_NAME"
         ENV_FILE="prod"
         ;;
     *)
@@ -188,8 +180,10 @@ if $USE_LATEST_IMAGE; then
     fi
 fi
 
-# Deploy services using Docker Swarm
-docker stack config -c "$(pwd)/$DOCKER_COMPOSE_FILE" > processed.swarm.yml
+# Validation & Interpolation of docker compose file
+rm -f docker-compose.yml.dump
+
+docker stack config -c "$DOCKER_COMPOSE_FILE" > docker-compose.yml.dump
 STATUS=$?
 if [ $STATUS != 0 ]; then
     echo "docker stack config failed: $STATUS" >&2
@@ -198,13 +192,11 @@ fi
 
 echo "Deploying services with stack name: $STACK_NAME and tag: $IMAGE_TAG"
 
-docker stack deploy -c processed.swarm.yml "$STACK_NAME"
+docker stack deploy -c docker-compose.yml.dump "$STACK_NAME"
 STATUS=$?
 if [ $STATUS != 0 ]; then
     echo "docker stack deploy failed: $STATUS" >&2
     exit 1
 fi
-
-rm processed.swarm.yml
 
 echo "Deployment completed successfully!"
