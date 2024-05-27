@@ -3,7 +3,7 @@
 
 # Environment variables
 APP_NAME="news-search-api"
-API_REPLICAS=8
+API_REPLICAS=2
 API_PORT_BASE=8000
 UI_PORT_BASE=8501
 IMAGE_TAG="latest"
@@ -176,6 +176,7 @@ export ESHOSTS
 export SENTRY_DSN
 export SENTRY_ENVIRONMENT
 export IMAGE_TAG
+export NEWS_SEARCH_UI_TITLE
 
 if $USE_LATEST_IMAGE; then
     echo "Building Docker images..."

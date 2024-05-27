@@ -12,6 +12,7 @@ services:
       TERMAGGRS: ${TERMAGGRS}
       SENTRY_DSN: ${SENTRY_DSN}
       SENTRY_ENVIRONMENT: ${SENTRY_ENVIRONMENT}
+      TITLE: ${NEWS_SEARCH_UI_TITLE}
     ports:
       - ${API_PORT}:8000
     volumes:
