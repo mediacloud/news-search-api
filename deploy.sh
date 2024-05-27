@@ -3,6 +3,7 @@
 
 # Environment variables
 APP_NAME="news-search-api"
+API_REPLICAS=8
 API_PORT_BASE=8000
 UI_PORT_BASE=8501
 IMAGE_TAG="latest"
@@ -25,6 +26,7 @@ help()
     echo "-h, --help             Show this help message"
     echo "-a, --use-latest-image Allow deployment without requiring a checked-out tag, uses 'latest' as image tag (only for dev)"
     echo "-d, --deployment-type  Specify the deployment type (dev, staging or prod)"
+    echo "-R, --replicas         Set the number of API replicas (default: $API_REPLICAS)"
 }
 
 log()
@@ -65,6 +67,16 @@ while (( "$#" )); do
             BUILD_IMAGE="--build"
             shift
             ;;
+        -R|--replicas)
+            if [[ "$2" =~ ^[0-9]+$ ]]; then
+                API_REPLICAS="$2"
+                shift 2
+            else
+                echo "Error: --replicas requires a numerical argument." >&2
+                help
+                exit 1
+            fi
+            ;;
         -*|--*=) # unsupported flags
             echo "Error: Unsupported flag $1" >&2
             help
@@ -90,18 +102,18 @@ case "$DEPLOYMENT_TYPE" in
     dev)
         API_PORT=$(expr $API_PORT_BASE + 100)
         UI_PORT=$(expr $UI_PORT_BASE + 100)
-        PROJECT_NAME="$LOGIN_USER-dev"
+        STACK_NAME="$APP_NAME-$LOGIN_USER-dev"
         ;;
     staging)
         API_PORT=$(expr $API_PORT_BASE + 200)
         UI_PORT=$(expr $UI_PORT_BASE + 200)
-        PROJECT_NAME="staging"
+        STACK_NAME="$APP_NAME-staging"
         ENV_FILE="staging"
         ;;
     prod)
         API_PORT=$API_PORT_BASE
         UI_PORT=$UI_PORT_BASE
-        PROJECT_NAME="prod"
+        STACK_NAME="$APP_NAME-prod"
         ENV_FILE="prod"
         ;;
     *)
@@ -158,15 +170,40 @@ export ELASTICSEARCH_INDEX_NAME_PREFIX="mc_search-*"
 export TERMFIELDS="article_title,text_content"
 export TERMAGGRS="top,significant,rare"
 export API_PORT
+export API_REPLICAS
 export UI_PORT
 export ESHOSTS
 export SENTRY_DSN
 export SENTRY_ENVIRONMENT
 export IMAGE_TAG
 
-# Deploy services using Docker Compose
-echo "Deploying services with image, project name: $PROJECT_NAME & tag: $IMAGE_TAG"
+if $USE_LATEST_IMAGE; then
+    echo "Building Docker images..."
+    docker compose build
+    STATUS=$?
+    if [ $STATUS != 0 ]; then
+        echo "docker compose build failed: $STATUS" >&2
+        exit 1
+    fi
+fi
 
-docker compose -f "$(pwd)/$DOCKER_COMPOSE_FILE" -p "$PROJECT_NAME" up $BUILD_IMAGE -d
+# Deploy services using Docker Swarm
+docker stack config -c "$(pwd)/$DOCKER_COMPOSE_FILE" > processed.swarm.yml
+STATUS=$?
+if [ $STATUS != 0 ]; then
+    echo "docker stack config failed: $STATUS" >&2
+    exit 1
+fi
+
+echo "Deploying services with stack name: $STACK_NAME and tag: $IMAGE_TAG"
+
+docker stack deploy -c processed.swarm.yml "$STACK_NAME"
+STATUS=$?
+if [ $STATUS != 0 ]; then
+    echo "docker stack deploy failed: $STATUS" >&2
+    exit 1
+fi
+
+rm processed.swarm.yml
 
 echo "Deployment completed successfully!"

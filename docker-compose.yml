@@ -1,6 +1,8 @@
 services:
   api:
     image: mcsystems/news-search-api:${IMAGE_TAG}
+    deploy:
+      replicas: ${API_REPLICAS}
     environment:
       INDEXES: ${INDEXES}
       ESHOSTS: ${ESHOSTS}
