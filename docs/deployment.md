@@ -6,6 +6,8 @@ Before you begin, ensure you have the following prerequisites in place:
 
 2. Docker Compose: Make sure you have Docker Compose installed, as it's essential for managing multi-container applications. You can install Docker Compose by following the instructions in the official [documentation](https://docs.docker.com/compose/install/).
 
+3. Docker Swarm setup: We require Docker swarm setup to deploy the News-Search-API. After installing docker and docker compose as per above, ensure Docker Swarm is setup following the instructions in the official [documentation](https://docs.docker.com/engine/swarm/)
+
 
 ### Dev, Staging & production
 
@@ -64,25 +66,11 @@ make production
 
 ### Cleanup
 
-All deployments use distinct [project names](https://docs.docker.com/compose/project-name/) to make them easily distinguishable. `dev` deployments use logged_in user prefix and `-dev` suffix (to allow multiple deployments from different users on the same machine), while staging and production uses `staging` and `prod` project names respectively.
+All deployments use distinct stack names to make them easily distinguishable. `dev` deployments use logged_in user prefix (to allow multiple deployments from different users on the same machine), while staging and production uses `staging` and `prod` stack name prefixes respectively.
 
 To cleanup/shutdown `news-search-api` deployment, use the following command:
 
-```sudo docker compose -p <project_name> down```
+```docker stack rm <stack_name>```
 
 To cleanup a dev deployment by user `johndoe`, run the command:
-```sudo docker compose -p johndoe-dev down```
-
-To cleanup a staging & production deployments, run the commands
-
-```
-Staging
-
-docker compose -p staging down
-```
-
-```
-Production
-
-docker compose -p production down
-```
+```docker stack rm johndoe```
