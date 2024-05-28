@@ -66,11 +66,11 @@ make production
 
 ### Cleanup
 
-All deployments use distinct stack names to make them easily distinguishable. `dev` deployments use logged_in user prefix and `-dev` suffix (to allow multiple deployments from different users on the same machine), while staging and production uses `staging` and `prod` stack name suffixes respectively.
+All deployments use distinct stack names to make them easily distinguishable. `dev` deployments use logged_in user prefix (to allow multiple deployments from different users on the same machine), while staging and production uses `staging` and `prod` stack name prefixes respectively.
 
 To cleanup/shutdown `news-search-api` deployment, use the following command:
 
 ```docker stack rm <stack_name>```
 
 To cleanup a dev deployment by user `johndoe`, run the command:
-```docker stack rm johndoe-dev```
+```docker stack rm johndoe```
