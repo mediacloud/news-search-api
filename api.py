@@ -39,7 +39,7 @@ app = FastAPI()
 
 
 class ApiVersion(str, Enum):
-    v1 = "1.3.1"
+    v1 = "1.3.2"
 
 
 config = load_config()
@@ -84,10 +84,10 @@ def get_allowed_collections():
         if index.startswith(ELASTICSEARCH_INDEX_NAME_PREFIX)
     ]
     for aliases in ES.indices.get_alias().values():
-        #returns: {"index_name":{"aliases":{"alias_name":{"is_write_index":bool}}}}
+        # returns: {"index_name":{"aliases":{"alias_name":{"is_write_index":bool}}}}
         for alias in aliases["aliases"].keys():
-           if alias not in all_indexes:
-               all_indexes.append(alias)
+            if alias not in all_indexes:
+                all_indexes.append(alias)
     all_indexes.append(f"{ELASTICSEARCH_INDEX_NAME_PREFIX}-*")
 
     logger.info(f"Exposed indices: {all_indexes}")
