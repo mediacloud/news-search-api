@@ -4,7 +4,6 @@ services:
     deploy:
       replicas: ${API_REPLICAS}
     environment:
-      INDEXES: ${INDEXES}
       ESHOSTS: ${ESHOSTS}
       ESOPTS: ${ESOPTS}
       ELASTICSEARCH_INDEX_NAME_PREFIX: ${ELASTICSEARCH_INDEX_NAME_PREFIX}
