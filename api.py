@@ -28,7 +28,8 @@ from utils import (
 if os.getenv("SENTRY_DSN"):
     sentry_sdk.init(
         dsn=os.getenv("SENTRY_DSN"),
-        enable_tracing=True,
+        tracing_sample_rate=os.getenv("TRACING_SAMPLE_RATE", 1.0),
+        profiles_sample_rate=os.getenv("PROFILES_SAMPLE_RATE", 1.0),
         integrations=[
             StarletteIntegration(transaction_style="url"),
             FastApiIntegration(transaction_style="url"),
