@@ -25,11 +25,26 @@ from utils import (
     logger,
 )
 
+def getenv_float(name: str, defval: float | None) -> float | None:
+    """
+    fetch environment variable with name `name`
+    if not set, return defval
+    if set to empty string, return None
+    else interpret as floating point number
+    """
+    val = os.getenv(name)
+    if val is None:
+        return defval
+    if val == "":
+        return None
+    return float(val)
+
+
 if os.getenv("SENTRY_DSN"):
     sentry_sdk.init(
         dsn=os.getenv("SENTRY_DSN"),
-        traces_sample_rate=os.getenv("TRACING_SAMPLE_RATE", 1.0),
-        profiles_sample_rate=os.getenv("PROFILES_SAMPLE_RATE", 1.0),
+        traces_sample_rate=getenv_float("TRACING_SAMPLE_RATE", 1.0),
+        profiles_sample_rate=getenv_float("PROFILES_SAMPLE_RATE", 1.0),
         integrations=[
             StarletteIntegration(transaction_style="url"),
             FastApiIntegration(transaction_style="url"),
