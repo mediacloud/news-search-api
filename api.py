@@ -144,7 +144,7 @@ app.add_middleware(
     allow_origins=["*"],
     allow_methods=["GET", "HEAD", "POST", "OPTIONS"],
     allow_headers=["*"],
-    expose_headers=["link", "x-resume-token", "x-api-version"],
+    expose_headers=["x-resume-token", "x-api-version"],
 )
 
 
@@ -509,7 +509,7 @@ def _search_result(
     if len(res["hits"]["hits"]) == (page_size or config["maxpage"]):
         resume_key = encode(str(res["hits"]["hits"][-1]["sort"][0]))
         resp.headers["x-resume-token"] = resume_key
-        resp.headers["link"] = f'<{qurl}&resume={resume_key}>; rel="next"'
+        
     return [
         format_match(h, base, collection.name, expanded) for h in res["hits"]["hits"]
     ]
