@@ -1,0 +1,43 @@
+version: "3.11"
+services:
+  api:
+    deploy:
+      replicas: 2
+    environment:
+      ELASTICSEARCH_INDEX_NAME_PREFIX: mc_search
+      ESHOSTS: ""
+      ESOPTS: '{"timeout": 60, "max_retries": 3}'
+      SENTRY_DSN: ""
+      SENTRY_ENVIRONMENT: ""
+      TERMAGGRS: top,significant,rare
+      TERMFIELDS: article_title,text_content
+      TITLE: ""
+    image: mcsystems/news-search-api:latest
+    ports:
+    - mode: ingress
+      target: 8000
+      published: 8100
+      protocol: tcp
+    volumes:
+    - type: bind
+      source: /Users/pgulley/Projects/news-search-api
+      target: /app
+  ui:
+    command:
+    - streamlit
+    - run
+    - ui.py
+    depends_on:
+    - api
+    environment:
+      APIURL: http://api:8000/v1
+    image: mcsystems/news-search-api:latest
+    ports:
+    - mode: ingress
+      target: 8501
+      published: 8601
+      protocol: tcp
+    volumes:
+    - type: bind
+      source: /Users/pgulley/Projects/news-search-api
+      target: /app
