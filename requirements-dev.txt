@@ -4,6 +4,7 @@ fastapi==0.104.*
 matplotlib==3.8.*
 mypy==1.5.1
 pandas==2.1.*
+pyairtable==2.3.*
 pydantic==2.5.*
 requests
 streamlit==1.29.*
