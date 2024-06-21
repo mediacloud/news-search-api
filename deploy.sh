@@ -15,6 +15,11 @@ if [ "x$LOGIN_USER" = x ]; then
     exit 1
 fi
 
+if ! python3 -m bin.airtable-update --help >/dev/null; then
+    echo FATAL: deployment requires an up-to-date venv with pyairtable requirements 1>&2
+    exit 3
+fi
+
 run_as_login_user() {
 	su $LOGIN_USER -c "$*"
 }
@@ -197,5 +202,15 @@ if [ $STATUS != 0 ]; then
     echo "docker stack deploy failed: $STATUS" >&2
     exit 1
 fi
+
+#report deployment to airtable
+HOSTNAME=$(hostname --short)
+
+export AIRTABLE_API_KEY
+export MEAG_BASE_ID
+if [ "x$AIRTABLE_API_KEY" != x ]; then
+    python3 -m bin.airtable-update --name $STACK_NAME --env $DEPLOYMENT_TYPE --version $IMAGE_TAG --hardware $HOSTNAME
+fi
+
 
 echo "Deployment completed successfully!"
