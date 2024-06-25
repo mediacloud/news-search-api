@@ -69,6 +69,7 @@ Deployments are now configured to be automatically built and released via GitHub
 5. Once it is done, the labeled image will be ready at https://hub.docker.com/r/mcsystems/news-search-api
 
 ## Version History
+* __v1.3.5__ - Use mc-manage for deployment record
 * __v1.3.4__ - Add airtable deployment update script
 * __v1.3.3__ - Remove 'link' header
 * __v1.3.2__ - Enhancement to GithubActions and introduces an independent deployment script
