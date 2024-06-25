@@ -209,7 +209,7 @@ HOSTNAME=$(hostname --short)
 export AIRTABLE_API_KEY
 export MEAG_BASE_ID
 if [ "x$AIRTABLE_API_KEY" != x ]; then
-    python3 -m mc-manage.airtable-deployment-update --codebase APP_NAME --name $STACK_NAME --env $DEPLOYMENT_TYPE --version $IMAGE_TAG --hardware $HOSTNAME
+    python3 -m mc-manage.airtable-deployment-update --codebase $APP_NAME --name $STACK_NAME --env $DEPLOYMENT_TYPE --version $IMAGE_TAG --hardware $HOSTNAME
 fi
 
 
