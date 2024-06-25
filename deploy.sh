@@ -15,7 +15,7 @@ if [ "x$LOGIN_USER" = x ]; then
     exit 1
 fi
 
-if ! python3 -m bin.airtable-update --help >/dev/null; then
+if ! python3 -m mc-manage.airtable-deployment-update --help >/dev/null; then
     echo FATAL: deployment requires an up-to-date venv with pyairtable requirements 1>&2
     exit 3
 fi
@@ -209,7 +209,7 @@ HOSTNAME=$(hostname --short)
 export AIRTABLE_API_KEY
 export MEAG_BASE_ID
 if [ "x$AIRTABLE_API_KEY" != x ]; then
-    python3 -m bin.airtable-update --name $STACK_NAME --env $DEPLOYMENT_TYPE --version $IMAGE_TAG --hardware $HOSTNAME
+    python3 -m mc-manage.airtable-deployment-update --codebase $APP_NAME --name $STACK_NAME --env $DEPLOYMENT_TYPE --version $IMAGE_TAG --hardware $HOSTNAME
 fi
 
 
