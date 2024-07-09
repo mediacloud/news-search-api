@@ -12,10 +12,12 @@ from api import ApiVersion, app
 # the `create_fixtures.py` script
 os.environ["INDEXES"] = INDEX_NAME
 os.environ["ESHOSTS"] = ELASTICSEARCH_URL
-os.environ["ELASTICSEARCH_INDEX_NAME_PREFIX"] = "mediacloud"
+os.environ["TERMFIELDS"] = "article_title,text_content"
+os.environ["TERMAGGRS"] = "top"
+os.environ["ELASTICSEARCH_INDEX_NAME_PREFIX"] = "mc_search"
 
 
-TIMEOUT = 30
+TIMEOUT = 60
 
 
 class ApiTest(TestCase):

@@ -32,6 +32,21 @@ def list_to_enum(name: str, koptv: list):
     return Enum(name, [f"{kv}:{kv}".split(":")[:2] for kv in koptv])
 
 
+def env_to_float(name: str, defval: float | None) -> float | None:
+    """
+    fetch environment variable with name `name`
+    if not set, return defval
+    if set to empty string, return None
+    else interpret as floating point number
+    """
+    val = os.getenv(name)
+    if val is None:
+        return defval
+    if val == "":
+        return None
+    return float(val)
+
+
 def assert_elasticsearch_connection(es: Elasticsearch) -> bool:
     try:
         info = es.info()
