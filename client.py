@@ -12,11 +12,12 @@ from fastapi import HTTPException, Request, Response
 from utils import assert_elasticsearch_connection, env_to_list, logger
 
 
-def decode(strng: str):
+# used to package paging keys for url transport
+def decode_key(strng: str):
     return base64.b64decode(strng.replace("~", "=").encode(), b"-_").decode()
 
 
-def encode(strng: str):
+def encode_key(strng: str):
     return base64.b64encode(strng.encode(), b"-_").decode().replace("=", "~")
 
 
@@ -27,10 +28,11 @@ class QueryBuilder:
 
     """
 
+    VALID_SORT_ORDERS = ["asc", "desc"]
+    VALID_SORT_FIELDS = ["publication_date", "indexed_date"]
+
     def __init__(self, query_text):
         self.query_text = query_text
-        self.VALID_SORT_ORDERS = ["asc", "desc"]
-        self.VALID_SORT_FIELDS = ["publication_date", "indexed_date"]
         self._source = [
             "article_title",
             "normalized_article_title",
@@ -43,20 +45,7 @@ class QueryBuilder:
             "normalized_url",
             "original_url",
         ]
-        self._extended_source = [
-            "article_title",
-            "normalized_article_title",
-            "publication_date",
-            "indexed_date",
-            "language",
-            "full_language",
-            "canonical_domain",
-            "url",
-            "normalized_url",
-            "original_url",
-            "text_content",
-            "text_extraction",
-        ]
+        self._expanded_source = self._source.extend(["text_content", "text_extraction"])
 
     def _validate_sort_order(self, sort_order: Optional[str]):
         if sort_order and sort_order not in self.VALID_SORT_ORDERS:
@@ -83,7 +72,7 @@ class QueryBuilder:
 
     def basic_query(self, expanded: bool = False) -> Dict:
         default: dict = {
-            "_source": self._extended_source if expanded else self._source,
+            "_source": self._expanded_source if expanded else self._source,
             "query": {
                 "query_string": {
                     "default_field": "text_content",
@@ -166,12 +155,12 @@ class QueryBuilder:
         if resume:
             # important to use `search_after` instead of 'from' for memory reasons related to paging through more
             # than 10k results
-            query["search_after"] = [decode(resume)]
+            query["search_after"] = [decode_key(resume)]
         return query
 
     def article_query(self):
         default: dict = {
-            "_source": self._extended_source,
+            "_source": self._expanded_source,
             "query": {"match": {"_id": self.query_text}},
         }
 
@@ -182,7 +171,7 @@ class EsClientWrapper:
     # A wrapper to actually make the calls to elasticsearch
     def __init__(self, eshosts, **esopts):
         self.ES = Elasticsearch(eshosts, **esopts)
-        self.maxpage = os.getenv("maxpage", 1000)
+        self.maxpage = os.getenv("MAXPAGE", 1000)
         max_retries = 10
         retries = 0
 
@@ -305,7 +294,7 @@ class EsClientWrapper:
             raise HTTPException(status_code=404, detail="No results found!")
 
         if len(res["hits"]["hits"]) == (page_size or self.maxpage):
-            resume_key = encode(str(res["hits"]["hits"][-1]["sort"][0]))
+            resume_key = encode_key(str(res["hits"]["hits"][-1]["sort"][0]))
             resp.headers["x-resume-token"] = resume_key
 
         return [

@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 
-from queries import EsClientWrapper
+from client import EsClientWrapper
 from utils import (
     assert_elasticsearch_connection,
     env_to_dict,
@@ -27,6 +27,7 @@ from utils import (
     logger,
 )
 
+# Initialize our sentry integration
 if os.getenv("SENTRY_DSN"):
     sentry_sdk.init(
         dsn=os.getenv("SENTRY_DSN"),
@@ -62,7 +63,7 @@ ES = EsClientWrapper(config["eshosts"], **config["esopts"])
 
 Collection = Enum("Collection", [f"{kv}:{kv}".split(":")[:2] for kv in ES.get_allowed_collections()])  # type: ignore [misc]
 TermField = Enum("TermField", [f"{kv}:{kv}".split(":")[:2] for kv in env_to_list("TERMFIELDS")])  # type: ignore [misc]
-TermAggr = Enum("TermAggr", [f"{kv}:{kv}".split(":")[:2] for kv in env_to_list("TERMFIELDS")])  # type: ignore [misc]
+TermAggr = Enum("TermAggr", [f"{kv}:{kv}".split(":")[:2] for kv in env_to_list("TERMAGGRS")])  # type: ignore [misc]
 
 
 tags = [
@@ -121,10 +122,6 @@ class PagedQuery(Query):
     sort_field: Optional[str] = None
     sort_order: Optional[str] = None
     page_size: Optional[int] = None
-
-
-def proxy_base_url(req: Request):
-    return f'{str(os.getenv("PROXY_BASE", req.base_url)).rstrip("/")}/{req.scope.get("root_path").lstrip("/")}'  # type: ignore [union-attr]
 
 
 @app.get("/", response_class=HTMLResponse)
