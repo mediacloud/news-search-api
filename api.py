@@ -227,7 +227,7 @@ def search_overview_via_query_params(collection: Collection, q: str, req: Reques
     """
     Report overview summary of the search result
     """
-    return ES.search_overview(collection.name, q, req)
+    return ES.search_overview(collection.name, q)
 
 
 @v1.post("/{collection}/search/overview", tags=["data"])
@@ -235,7 +235,7 @@ def search_overview_via_payload(collection: Collection, req: Request, payload: Q
     """
     Report summary of the search result
     """
-    return ES.search_overview(collection.name, payload.q, req)
+    return ES.search_overview(collection.name, payload.q)
 
 
 @v1.get("/{collection}/search/result", tags=["data"])
@@ -254,17 +254,18 @@ def search_result_via_query_params(
     """
     Paged response of search result
     """
-    return ES.search_result(
+
+    result, resume_key = ES.search_result(
         collection.name,
         q,
-        req,
-        resp,
         resume,
         expanded,
         sort_field,
         sort_order,
         page_size,
     )
+    resp.headers["x-resume-token"] = resume_key
+    return result
 
 
 @v1.post("/{collection}/search/result", tags=["data"])
@@ -274,17 +275,17 @@ def search_result_via_payload(
     """
     Paged response of search result
     """
-    return ES.search_result(
+    result, resume_key = ES.search_result(
         collection.name,
         payload.q,
-        req,
-        resp,
         payload.resume,
         payload.expanded,
         payload.sort_field,
         payload.sort_order,
         payload.page_size,
     )
+    resp.headers["x-resume-token"] = resume_key
+    return result
 
 
 if config.debug:
@@ -359,7 +360,7 @@ def get_article(
     Fetch an individual article record by ID.
     """
 
-    return ES.get_article(collection.name, id, req)
+    return ES.get_article(collection.name, id)
 
 
 app.mount(f"/{ApiVersion.v1.name}", v1)

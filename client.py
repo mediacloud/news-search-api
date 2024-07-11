@@ -7,13 +7,14 @@ from typing import Dict, Optional, TypeAlias, Union
 import mcmetadata.urls as urls
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
-from fastapi import HTTPException, Request, Response
+from fastapi import HTTPException
 from pydantic import BaseModel, computed_field
 from pydantic_settings import BaseSettings
 
 from utils import assert_elasticsearch_connection, logger
 
 
+# Loads values from the environment
 class ClientConfig(BaseSettings):
     maxpage: int = 1000
     elasticsearch_index_name_prefix: str = ""
@@ -247,7 +248,7 @@ class EsClientWrapper:
     def format_counts(self, bucket: list):
         return {item["key"]: item["doc_count"] for item in bucket}
 
-    def search_overview(self, collection: str, q: str, req: Request):
+    def search_overview(self, collection: str, q: str):
         """
         Get overview statistics for a query
         """
@@ -275,8 +276,6 @@ class EsClientWrapper:
         self,
         collection: str,
         q: str,
-        req: Request,
-        resp: Response,
         resume: Union[str, None] = None,
         expanded: bool = False,
         sort_field: Optional[str] = None,
@@ -294,11 +293,13 @@ class EsClientWrapper:
         if not res["hits"]["hits"]:
             raise HTTPException(status_code=404, detail="No results found!")
 
+        resume_key = None
         if len(res["hits"]["hits"]) == (page_size or self.maxpage):
             resume_key = encode_key(str(res["hits"]["hits"][-1]["sort"][0]))
-            resp.headers["x-resume-token"] = resume_key
 
-        return [self.format_match(h, collection, expanded) for h in res["hits"]["hits"]]
+        return [
+            self.format_match(h, collection, expanded) for h in res["hits"]["hits"]
+        ], resume_key
 
     def get_terms(
         self,
@@ -318,7 +319,7 @@ class EsClientWrapper:
             raise HTTPException(status_code=404, detail="No results found!")
         return self.format_counts(res["aggregations"]["sample"]["topterms"]["buckets"])
 
-    def get_article(self, collection: str, id: str, req):
+    def get_article(self, collection: str, id: str):
         """
         Get an individual article by id.
         """
