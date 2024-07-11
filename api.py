@@ -3,7 +3,7 @@ import base64
 import os
 import time
 from enum import Enum
-from typing import Dict, Optional, TypeAlias, Union
+from typing import Dict, List, Optional, TypeAlias, Union
 from urllib.parse import quote_plus
 
 import mcmetadata.urls as urls
@@ -13,26 +13,50 @@ from elasticsearch.exceptions import TransportError
 from fastapi import Body, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, computed_field
+from pydantic_settings import BaseSettings
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.starlette import StarletteIntegration
 
 from client import EsClientWrapper
-from utils import (
-    assert_elasticsearch_connection,
-    env_to_dict,
-    env_to_float,
-    env_to_list,
-    load_config,
-    logger,
-)
+from utils import assert_elasticsearch_connection, logger
+
+
+class Config(BaseSettings):
+    eshosts: str = "http://localhost:9200"
+    termfields: str = "article_title,text_content"
+    termaggrs: str = "top"
+    esopts: Dict = {}
+    title: str = "Interactive API"
+    description: str = "A wrapper API for ES indexes."
+    debug: bool = False
+    sentry_dsn: str = ""
+    tracing_sample_rate: float = 1.0
+    profiles_sample_rate: float = 1.0
+    root_path: str = ""
+
+    @computed_field()
+    def eshosts_list(self) -> List[str]:
+        return self.eshosts.split(",")
+
+    @computed_field()
+    def termfields_list(self) -> List[str]:
+        return self.termfields.split(",")
+
+    @computed_field()
+    def termaggrs_list(self) -> List[str]:
+        return self.termaggrs.split(",")
+
+
+config = Config()
+logger.info(f"Loaded config: {config}")
 
 # Initialize our sentry integration
-if os.getenv("SENTRY_DSN"):
+if config.sentry_dsn:
     sentry_sdk.init(
-        dsn=os.getenv("SENTRY_DSN"),
-        traces_sample_rate=env_to_float("TRACING_SAMPLE_RATE", 1.0),
-        profiles_sample_rate=env_to_float("PROFILES_SAMPLE_RATE", 1.0),
+        dsn=config.sentry_dsn,
+        traces_sample_rate=config.tracing_sample_rate,
+        profiles_sample_rate=config.profiles_sample_rate,
         integrations=[
             StarletteIntegration(transaction_style="url"),
             FastApiIntegration(transaction_style="url"),
@@ -46,24 +70,11 @@ class ApiVersion(str, Enum):
     v1 = "1.3.5"
 
 
-config = load_config()
-config["eshosts"] = env_to_list("ESHOSTS") or config.get(
-    "eshosts", ["http://localhost:9200"]
-)
-config["esopts"] = env_to_dict("ESOPTS") or config.get("esopts", {})
-config["title"] = os.getenv("TITLE", config.get("title", ""))
-config["description"] = os.getenv("DESCRIPTION", config.get("description", ""))
-config["debug"] = str(os.getenv("DEBUG", config.get("debug", False))).lower() in (
-    "true",
-    "1",
-    "t",
-)
-
-ES = EsClientWrapper(config["eshosts"], **config["esopts"])
+ES = EsClientWrapper(config.eshosts_list, **config.esopts)
 
 Collection = Enum("Collection", [f"{kv}:{kv}".split(":")[:2] for kv in ES.get_allowed_collections()])  # type: ignore [misc]
-TermField = Enum("TermField", [f"{kv}:{kv}".split(":")[:2] for kv in env_to_list("TERMFIELDS")])  # type: ignore [misc]
-TermAggr = Enum("TermAggr", [f"{kv}:{kv}".split(":")[:2] for kv in env_to_list("TERMAGGRS")])  # type: ignore [misc]
+TermField = Enum("TermField", [f"{kv}:{kv}".split(":")[:2] for kv in config.termfields_list])  # type: ignore [misc]
+TermAggr = Enum("TermAggr", [f"{kv}:{kv}".split(":")[:2] for kv in config.termaggrs_list])  # type: ignore [misc]
 
 
 tags = [
@@ -76,7 +87,7 @@ tags = [
         "description": "Data endpoints with machine-readable responses to interact with the collection indexes.",
     },
 ]
-if config["debug"]:
+if config.debug:
     tags.append(
         {
             "name": "debug",
@@ -105,8 +116,8 @@ async def add_api_version_header(req: Request, call_next):
 
 
 v1 = FastAPI(
-    title=config.get("title", "Interactive API") + " Docs",
-    description=config.get("description", "A wrapper API for ES indexes."),
+    title=config.title + " Docs",
+    description=config.description,
     version=ApiVersion.v1.value,
     openapi_tags=tags,
 )
@@ -276,7 +287,7 @@ def search_result_via_payload(
     )
 
 
-if config["debug"]:
+if config.debug:
 
     @v1.post("/{collection}/search/esdsl", tags=["debug"])
     def search_esdsl_via_payload(collection: Collection, payload: dict = Body(...)):
@@ -357,6 +368,4 @@ app.mount(f"/{ApiVersion.v1.name}", v1)
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(
-        "api:app", host="0.0.0.0", reload=True, root_path=os.getenv("ROOT_PATH", "")
-    )
+    uvicorn.run("api:app", host="0.0.0.0", reload=True, root_path=config.root_path)

@@ -5,6 +5,7 @@ matplotlib==3.8.*
 mediacloud-metadata==0.11.*
 pandas==2.2.*
 pydantic==2.5.*
+pydantic_settings==2.*
 requests
 streamlit==1.30.*
 uvicorn[standard]

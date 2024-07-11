@@ -8,8 +8,18 @@ import mcmetadata.urls as urls
 from elasticsearch import Elasticsearch
 from elasticsearch.exceptions import TransportError
 from fastapi import HTTPException, Request, Response
+from pydantic import BaseModel, computed_field
+from pydantic_settings import BaseSettings
 
-from utils import assert_elasticsearch_connection, env_to_list, logger
+from utils import assert_elasticsearch_connection, logger
+
+
+class ClientConfig(BaseSettings):
+    maxpage: int = 1000
+    elasticsearch_index_name_prefix: str = ""
+
+
+client_config = ClientConfig()
 
 
 # used to package paging keys for url transport
@@ -171,7 +181,7 @@ class EsClientWrapper:
     # A wrapper to actually make the calls to elasticsearch
     def __init__(self, eshosts, **esopts):
         self.ES = Elasticsearch(eshosts, **esopts)
-        self.maxpage = os.getenv("MAXPAGE", 1000)
+        self.maxpage = client_config.maxpage
         max_retries = 10
         retries = 0
 
@@ -187,7 +197,7 @@ class EsClientWrapper:
                     f"Elasticsearch connection failed {max_retries} times, giving up."
                 )
 
-        self.index_name_prefix = os.getenv("ELASTICSEARCH_INDEX_NAME_PREFIX", "")
+        self.index_name_prefix = client_config.elasticsearch_index_name_prefix
         logger.info("Initialized ES client wrapper")
 
     def get_allowed_collections(self):
@@ -209,9 +219,7 @@ class EsClientWrapper:
         logger.info(f"Exposed indices: {all_indexes}")
         return all_indexes
 
-    def format_match(
-        self, hit: dict, base: str, collection: str, expanded: bool = False
-    ):
+    def format_match(self, hit: dict, collection: str, expanded: bool = False):
         src = hit["_source"]
         res = {
             "article_title": src.get("article_title"),
@@ -239,9 +247,6 @@ class EsClientWrapper:
     def format_counts(self, bucket: list):
         return {item["key"]: item["doc_count"] for item in bucket}
 
-    def proxy_base_url(self, req: Request):
-        return f'{str(os.getenv("PROXY_BASE", req.base_url)).rstrip("/")}/{req.scope.get("root_path").lstrip("/")}'  # type: ignore [union-attr]
-
     def search_overview(self, collection: str, q: str, req: Request):
         """
         Get overview statistics for a query
@@ -254,7 +259,6 @@ class EsClientWrapper:
         tldsum = sum(
             item["doc_count"] for item in res["aggregations"]["tld"]["buckets"]
         )
-        base = self.proxy_base_url(req)
         return {
             "query": q,
             "total": max(total, tldsum),
@@ -264,9 +268,7 @@ class EsClientWrapper:
             "dailycounts": self.format_day_counts(
                 res["aggregations"]["daily"]["buckets"]
             ),
-            "matches": [
-                self.format_match(h, base, collection) for h in res["hits"]["hits"]
-            ],
+            "matches": [self.format_match(h, collection) for h in res["hits"]["hits"]],
         }
 
     def search_result(
@@ -288,7 +290,6 @@ class EsClientWrapper:
             resume, expanded, sort_field, sort_order, page_size
         )
         res = self.ES.search(index=collection, body=query)  # type: ignore [call-arg]
-        base = self.proxy_base_url(req)
 
         if not res["hits"]["hits"]:
             raise HTTPException(status_code=404, detail="No results found!")
@@ -297,10 +298,7 @@ class EsClientWrapper:
             resume_key = encode_key(str(res["hits"]["hits"][-1]["sort"][0]))
             resp.headers["x-resume-token"] = resume_key
 
-        return [
-            self.format_match(h, base, collection, expanded)
-            for h in res["hits"]["hits"]
-        ]
+        return [self.format_match(h, collection, expanded) for h in res["hits"]["hits"]]
 
     def get_terms(
         self,
@@ -340,5 +338,5 @@ class EsClientWrapper:
             raise HTTPException(
                 status_code=404, detail=f"An article with ID {id} not found!"
             )
-        base = self.proxy_base_url(req)
-        return self.format_match(hit, base, collection, True)
+
+        return self.format_match(hit, collection, True)

@@ -1,50 +1,9 @@
-import json
 import logging
-import os
-from enum import Enum
-from typing import TypeAlias
 
-import yaml
 from elasticsearch import Elasticsearch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-
-def load_config():
-    conf = os.getenv("CONFIG", "config.yml")
-    try:
-        return yaml.safe_load(open(conf, encoding="UTF-8"))
-    except OSError:
-        return {}
-
-
-def env_to_list(name: str):
-    return " ".join(os.getenv(name, "").split(",")).split()
-
-
-def env_to_dict(name: str):
-    return json.loads(os.getenv(name, "{}"))
-
-
-def list_to_enum(name: str, koptv: list):
-    # Just use StrEnum? py3.11 feature- let's attempt.
-    return Enum(name, [f"{kv}:{kv}".split(":")[:2] for kv in koptv])
-
-
-def env_to_float(name: str, defval: float | None) -> float | None:
-    """
-    fetch environment variable with name `name`
-    if not set, return defval
-    if set to empty string, return None
-    else interpret as floating point number
-    """
-    val = os.getenv(name)
-    if val is None:
-        return defval
-    if val == "":
-        return None
-    return float(val)
 
 
 def assert_elasticsearch_connection(es: Elasticsearch) -> bool:
