@@ -264,7 +264,8 @@ def search_result_via_query_params(
         sort_order,
         page_size,
     )
-    resp.headers["x-resume-token"] = resume_key
+    if resume_key:
+        resp.headers["x-resume-token"] = resume_key
     return result
 
 
@@ -284,7 +285,8 @@ def search_result_via_payload(
         payload.sort_order,
         payload.page_size,
     )
-    resp.headers["x-resume-token"] = resume_key
+    if resume_key:
+        resp.headers["x-resume-token"] = resume_key
     return result
 
 
