@@ -357,7 +357,7 @@ class ApiTest(TestCase):
     def test_top_terms(self):
         response = self._client.post(
             f"/v1/{INDEX_NAME}/terms/article_title/top",
-            json={"q": "'the big e' AND language:en'"},
+            json={"q": "mediacloud"},
             timeout=TIMEOUT,
         )
 
