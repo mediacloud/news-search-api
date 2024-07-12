@@ -70,7 +70,7 @@ for p in ("col", "q"):
 cols = st.columns([20, 80])
 col = cols[0].selectbox("Collection", COLLECTIONS, key="col")
 q = cols[1].text_input("Search Query", key="q", placeholder="covid -vaccine title:usa")
-print(q)
+
 if not q or not col:
     st.stop()
 
