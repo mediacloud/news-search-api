@@ -34,6 +34,7 @@ class Config(BaseSettings):
     tracing_sample_rate: float = 1.0
     profiles_sample_rate: float = 1.0
     root_path: str = ""
+    deployment_type: str = "dev"
 
     @computed_field()
     def eshosts_list(self) -> List[str]:
@@ -55,6 +56,7 @@ logger.info(f"Loaded config: {config}")
 if config.sentry_dsn:
     sentry_sdk.init(
         dsn=config.sentry_dsn,
+        environment=config.deployment_type,
         traces_sample_rate=config.tracing_sample_rate,
         profiles_sample_rate=config.profiles_sample_rate,
         integrations=[
