@@ -1,7 +1,7 @@
 import copy
 import datetime as dt
 import logging
-from random import randrange
+from random import randrange, sample
 from test import ELASTICSEARCH_URL, INDEX_NAME, NUMBER_OF_TEST_STORIES
 
 import mcmetadata.titles as titles
@@ -28,12 +28,17 @@ es_mappings = {
         "article_title": {
             "type": "text",
             "fields": {"keyword": {"type": "keyword"}},
+            "fielddata": True,
         },
         "normalized_article_title": {
             "type": "text",
             "fields": {"keyword": {"type": "keyword"}},
         },
-        "text_content": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+        "text_content": {
+            "type": "text",
+            "fields": {"keyword": {"type": "keyword"}},
+            "fielddata": True,
+        },
         "indexed_date": {"type": "date"},
     }
 }
@@ -61,14 +66,27 @@ base_fixture = {
     "text_extraction": "trafilatura",
 }
 
+random_wordlist = [
+    "robust",
+    "traditional",
+    "the",
+    "find",
+    "great",
+    "simple",
+    "time",
+    "mediacloud",
+    "robot",
+    "enough",
+]
+
 imported_count = 0
 for idx in range(0, NUMBER_OF_TEST_STORIES):
     fixture = copy.copy(base_fixture)
     fixture["url"] += str(idx)
     fixture["original_url"] = fixture["url"]
     fixture["normalized_url"] = urls.normalize_url(fixture["url"])  # type: ignore [assignment]
-    fixture["article_title"] += str(idx)
-    fixture["text_content"] += str(idx)
+    fixture["article_title"] += " ".join(sample(random_wordlist, 1)) + " " + str(idx)
+    fixture["text_content"] += " ".join(sample(random_wordlist, 10)) + " " + str(idx)
     pub_date = dt.date(2023, 1, 1) + dt.timedelta(days=randrange(365))
     if (idx % 1000) != 0:
         fixture["publication_date"] = pub_date.isoformat()

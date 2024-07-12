@@ -353,3 +353,14 @@ class ApiTest(TestCase):
         assert results["total"] == 1 + int(NUMBER_OF_TEST_STORIES / 1000)
         for s in results["matches"]:
             assert s["publication_date"] is None
+
+    def test_top_terms(self):
+        response = self._client.post(
+            f"/v1/{INDEX_NAME}/terms/article_title/top",
+            json={"q": "mediacloud"},
+            timeout=TIMEOUT,
+        )
+
+        results = response.json()
+        assert response.status_code == 200
+        assert len(results) > 0
