@@ -28,12 +28,17 @@ es_mappings = {
         "article_title": {
             "type": "text",
             "fields": {"keyword": {"type": "keyword"}},
+            "fielddata": True,
         },
         "normalized_article_title": {
             "type": "text",
             "fields": {"keyword": {"type": "keyword"}},
         },
-        "text_content": {"type": "text", "fields": {"keyword": {"type": "keyword"}}},
+        "text_content": {
+            "type": "text",
+            "fields": {"keyword": {"type": "keyword"}},
+            "fielddata": True,
+        },
         "indexed_date": {"type": "date"},
     }
 }
