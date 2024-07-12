@@ -73,14 +73,15 @@ for idx in range(0, NUMBER_OF_TEST_STORIES):
     if (idx % 1000) != 0:
         fixture["publication_date"] = pub_date.isoformat()
     else:  # make sure some have no publication date, and mark them for easy searching
-        fixture["publication_date"] = None
+        fixture["publication_date"] = None  # type: ignore [assignment]
         fixture["article_title"] += " (no publication date)"
         fixture["text_content"] += " (no publication date)"
     fixture["normalized_article_title"] = titles.normalize_title(
         fixture["article_title"]
     )
-    random_time_on_day = (dt.datetime(pub_date.year, pub_date.month, pub_date.day) +
-                          dt.timedelta(minutes=randrange(1440)))
+    random_time_on_day = dt.datetime(
+        pub_date.year, pub_date.month, pub_date.day
+    ) + dt.timedelta(minutes=randrange(1440))
     fixture["indexed_date"] = random_time_on_day.isoformat()
     unique_hash = urls.unique_url_hash(fixture["url"])
     try:
