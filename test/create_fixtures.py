@@ -73,7 +73,6 @@ random_wordlist = [
     "find",
     "great",
     "simple",
-    "a",
     "time",
     "mediacloud",
     "robot",
