@@ -119,7 +119,7 @@ class QueryBuilder:
         resct = 200
         aggr_map = {
             "terms": {
-                "field": field.name,
+                "field": field,
                 "size": resct,
                 "min_doc_count": 10,
                 "shard_min_doc_count": 5,
@@ -311,7 +311,7 @@ class EsClientWrapper:
         """
         Get top terms associated with a query
         """
-        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field))  # type: ignore [call-arg]
+        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field), request_timeout=60)  # type: ignore [call-arg]
         if (
             not res["hits"]["hits"]
             or not res["aggregations"]["sample"]["topterms"]["buckets"]
