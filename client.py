@@ -18,6 +18,7 @@ from utils import assert_elasticsearch_connection, logger
 class ClientConfig(BaseSettings):
     maxpage: int = 1000
     elasticsearch_index_name_prefix: str = ""
+    top_term_query_timeout: int = 60
 
 
 client_config = ClientConfig()
@@ -56,7 +57,7 @@ class QueryBuilder:
             "normalized_url",
             "original_url",
         ]
-        self._expanded_source = self._source.extend(["text_content", "text_extraction"])
+        self._expanded_source = self._source + ["text_content", "text_extraction"]
 
     def _validate_sort_order(self, sort_order: Optional[str]):
         if sort_order and sort_order not in self.VALID_SORT_ORDERS:
@@ -311,7 +312,7 @@ class EsClientWrapper:
         """
         Get top terms associated with a query
         """
-        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field), request_timeout=60)  # type: ignore [call-arg]
+        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field), request_timeout=client_config.top_term_query_timeout)  # type: ignore [call-arg]
         if (
             not res["hits"]["hits"]
             or not res["aggregations"]["sample"]["topterms"]["buckets"]

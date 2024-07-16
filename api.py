@@ -109,6 +109,15 @@ app.add_middleware(
     expose_headers=["x-resume-token", "x-api-version"],
 )
 
+if config.debug:
+
+    @app.middleware("http")
+    async def log_request(request: Request, call_next):
+        body = await request.body()
+        logger.info(f"Request: {request.method!r} {request.url!r} Body: {body!r}")
+        response = await call_next(request)
+        return response
+
 
 @app.middleware("http")
 async def add_api_version_header(req: Request, call_next):
@@ -256,7 +265,6 @@ def search_result_via_query_params(
     """
     Paged response of search result
     """
-
     result, resume_key = ES.search_result(
         collection.name,
         q,
