@@ -18,6 +18,7 @@ from utils import assert_elasticsearch_connection, logger
 class ClientConfig(BaseSettings):
     maxpage: int = 1000
     elasticsearch_index_name_prefix: str = ""
+    top_term_query_timeout: int = 60
 
 
 client_config = ClientConfig()
@@ -311,7 +312,7 @@ class EsClientWrapper:
         """
         Get top terms associated with a query
         """
-        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field), request_timeout=60)  # type: ignore [call-arg]
+        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field), request_timeout=client_config.top_term_query_timout)  # type: ignore [call-arg]
         if (
             not res["hits"]["hits"]
             or not res["aggregations"]["sample"]["topterms"]["buckets"]
