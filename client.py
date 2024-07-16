@@ -56,7 +56,7 @@ class QueryBuilder:
             "normalized_url",
             "original_url",
         ]
-        self._expanded_source = self._source.extend(["text_content", "text_extraction"])
+        self._expanded_source = self._source + ["text_content", "text_extraction"]
 
     def _validate_sort_order(self, sort_order: Optional[str]):
         if sort_order and sort_order not in self.VALID_SORT_ORDERS:
