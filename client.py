@@ -312,7 +312,7 @@ class EsClientWrapper:
         """
         Get top terms associated with a query
         """
-        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field), request_timeout=client_config.top_term_query_timout)  # type: ignore [call-arg]
+        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field), request_timeout=client_config.top_term_query_timeout)  # type: ignore [call-arg]
         if (
             not res["hits"]["hits"]
             or not res["aggregations"]["sample"]["topterms"]["buckets"]
