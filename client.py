@@ -55,7 +55,7 @@ class QueryBuilder:
         }
         TOP_LANGS = {"toplangs": {"terms": {"field": "language.keyword", "size": 100}}}
         TOP_DOMAINS = {
-            "topdomains": {"terms": {"field": "canonical_domain", "size": 100}}
+            "topdomains": {"terms": {"field": "canonical_domain.keyword", "size": 100}}
         }
 
     def __init__(self, query_text):
