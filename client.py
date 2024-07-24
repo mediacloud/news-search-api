@@ -330,7 +330,7 @@ class EsClientWrapper:
         return self.aggregator_query(
             collection,
             q,
-            QueryBuilder.Aggregators.TOP_LANGS,
+            QueryBuilder.Aggregators.TOP_DOMAINS,
         )
 
     def search_result(
