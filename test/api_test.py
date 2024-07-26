@@ -364,3 +364,36 @@ class ApiTest(TestCase):
         results = response.json()
         assert response.status_code == 200
         assert len(results) > 0
+
+    def test_daily_counts(self):
+        response = self._client.post(
+            f"/v1/{INDEX_NAME}/search/daily_counts",
+            json={"q": "mediacloud"},
+            timeout=TIMEOUT,
+        )
+
+        results = response.json()
+        assert response.status_code == 200
+        assert "dailycounts" in results
+
+    def test_top_languages(self):
+        response = self._client.post(
+            f"/v1/{INDEX_NAME}/search/top_languages",
+            json={"q": "mediacloud"},
+            timeout=TIMEOUT,
+        )
+
+        results = response.json()
+        assert response.status_code == 200
+        assert "toplangs" in results
+
+    def test_top_domains(self):
+        response = self._client.post(
+            f"/v1/{INDEX_NAME}/search/top_domains",
+            json={"q": "mediacloud"},
+            timeout=TIMEOUT,
+        )
+
+        results = response.json()
+        assert response.status_code == 200
+        assert "topdomains" in results
