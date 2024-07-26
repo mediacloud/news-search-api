@@ -266,6 +266,7 @@ class EsClientWrapper:
             raise HTTPException(status_code=404, detail="No results found!")
 
         total = res["hits"]["total"]["value"]
+
         return_dict = {
             "query": q,
         }
@@ -279,9 +280,20 @@ class EsClientWrapper:
 
         # Only return the total and matches if explicitly requested
         if "overview" in options:
+            if QueryBuilder.Aggregators.TOP_DOMAINS not in aggs:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Can't run overview query without top_domains aggregator",
+                )
+
+            domain_sum = sum(
+                item["doc_count"]
+                for item in res["aggregations"]["topdomains"]["buckets"]
+            )
+
             return_dict.update(
                 {
-                    "total": total,
+                    "total": max(total, domain_sum),
                     "matches": [  # type: ignore [dict-item]
                         self.format_match(h, collection) for h in res["hits"]["hits"]
                     ],
