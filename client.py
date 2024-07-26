@@ -272,7 +272,7 @@ class EsClientWrapper:
 
         # Add the results of each aggregator to the return value
         for agg in aggs:
-            agg_name = next(iter(agg.value.keys()))
+            agg_name = list(agg.value.keys())[0]
             return_dict.update(
                 {agg_name: self.format_counts(res["aggregations"][agg_name]["buckets"])}
             )
