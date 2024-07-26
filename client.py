@@ -280,6 +280,9 @@ class EsClientWrapper:
 
         # Only return the total and matches if explicitly requested
         if "overview" in options:
+            # We use a sum of the top_domains to supplement the total, as elasticsearch has a hard limit
+            # of 10,000 results per page in a source query, but aggregators can go around this.
+            #
             if QueryBuilder.Aggregators.TOP_DOMAINS not in aggs:
                 raise HTTPException(
                     status_code=500,
