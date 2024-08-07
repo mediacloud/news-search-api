@@ -108,7 +108,9 @@ class QueryBuilder:
                         }
                     },
                     "lang": {"terms": {"field": "language.keyword", "size": 100}},
-                    "domain": {"terms": {"field": "canonical_domain", "size": 100}},
+                    "domain": {
+                        "terms": {"field": "canonical_domain.keyword", "size": 100}
+                    },
                     "tld": {"terms": {"field": "tld", "size": 100}},
                 },
                 "track_total_hits": True,
