@@ -161,7 +161,7 @@ esac
 
 DOCKER_COMPOSE_FILE="docker-compose.yml"
 
-export ESOPTS='{"timeout": 60, "max_retries": 3}' # 'timeout' parameter is deprecated
+export ESOPTS='{"request_timeout": 600, "max_retries": 3}' # 'timeout' parameter is deprecated
 export TERMFIELDS="article_title,text_content"
 export TERMAGGRS="top"
 export ELASTICSEARCH_INDEX_NAME_PREFIX="mc_search"
