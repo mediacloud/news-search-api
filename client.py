@@ -19,6 +19,7 @@ class ClientConfig(BaseSettings):
     maxpage: int = 1000
     elasticsearch_index_name_prefix: str = ""
     esopts: Dict = {"request_timeout": 3600, "max_retries": 3}
+    debug: bool = False
 
 
 client_config = ClientConfig()
@@ -59,6 +60,8 @@ class QueryBuilder:
             "original_url",
         ]
         self._expanded_source = self._source + ["text_content", "text_extraction"]
+        if client_config.debug:
+            logger.info(f"Building es query for {self.query_text}")
 
     def _validate_sort_order(self, sort_order: Optional[str]):
         if sort_order and sort_order not in self.VALID_SORT_ORDERS:
