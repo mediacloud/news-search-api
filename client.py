@@ -22,6 +22,7 @@ class ClientConfig(BaseSettings):
 
 
 client_config = ClientConfig()
+logger.info(f"Loaded client config: {client_config}")
 
 
 # used to package paging keys for url transport
