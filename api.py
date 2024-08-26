@@ -26,7 +26,6 @@ class Config(BaseSettings):
     eshosts: str = "http://localhost:9200"
     termfields: str = "article_title,text_content"
     termaggrs: str = "top"
-    esopts: Dict = {}
     title: str = "Interactive API"
     description: str = "A wrapper API for ES indexes."
     debug: bool = False
@@ -72,7 +71,7 @@ class ApiVersion(str, Enum):
     v1 = "1.3.8"
 
 
-ES = EsClientWrapper(config.eshosts_list, **config.esopts)
+ES = EsClientWrapper(config.eshosts_list)
 
 Collection = Enum("Collection", [f"{kv}:{kv}".split(":")[:2] for kv in ES.get_allowed_collections()])  # type: ignore [misc]
 TermField = Enum("TermField", [f"{kv}:{kv}".split(":")[:2] for kv in config.termfields_list])  # type: ignore [misc]

@@ -18,7 +18,7 @@ from utils import assert_elasticsearch_connection, logger
 class ClientConfig(BaseSettings):
     maxpage: int = 1000
     elasticsearch_index_name_prefix: str = ""
-    top_term_query_timeout: int = 60
+    esopts: Dict = {"request_timeout": 3600, "max_retries": 3}
 
 
 client_config = ClientConfig()
@@ -183,8 +183,8 @@ class QueryBuilder:
 
 class EsClientWrapper:
     # A wrapper to actually make the calls to elasticsearch
-    def __init__(self, eshosts, **esopts):
-        self.ES = Elasticsearch(eshosts, **esopts)
+    def __init__(self, eshosts):
+        self.ES = Elasticsearch(eshosts, client_config.esopts)
         self.maxpage = client_config.maxpage
         max_retries = 10
         retries = 0
