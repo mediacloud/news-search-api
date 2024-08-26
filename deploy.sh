@@ -174,6 +174,7 @@ export SENTRY_ENVIRONMENT
 export IMAGE_TAG
 export NEWS_SEARCH_UI_TITLE
 export DEPLOYMENT_TYPE
+export DEBUG
 
 if $USE_LATEST_IMAGE; then
     echo "Building Docker images..."
