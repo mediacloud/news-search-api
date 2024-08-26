@@ -184,7 +184,7 @@ class QueryBuilder:
 class EsClientWrapper:
     # A wrapper to actually make the calls to elasticsearch
     def __init__(self, eshosts):
-        self.ES = Elasticsearch(eshosts, client_config.esopts)
+        self.ES = Elasticsearch(eshosts, **client_config.esopts)
         self.maxpage = client_config.maxpage
         max_retries = 10
         retries = 0
