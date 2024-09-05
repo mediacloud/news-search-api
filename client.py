@@ -18,10 +18,12 @@ from utils import assert_elasticsearch_connection, logger
 class ClientConfig(BaseSettings):
     maxpage: int = 1000
     elasticsearch_index_name_prefix: str = ""
-    top_term_query_timeout: int = 60
+    esopts: Dict = {"request_timeout": 600, "max_retries": 3}
+    debug: bool = False
 
 
 client_config = ClientConfig()
+logger.info(f"Loaded client config: {client_config}")
 
 
 # used to package paging keys for url transport
@@ -73,6 +75,8 @@ class QueryBuilder:
             "original_url",
         ]
         self._expanded_source = self._source + ["text_content", "text_extraction"]
+        if client_config.debug:
+            logger.debug(f"Building es query for {self.query_text}")
 
     def _validate_sort_order(self, sort_order: Optional[str]):
         if sort_order and sort_order not in self.VALID_SORT_ORDERS:
@@ -185,8 +189,8 @@ class QueryBuilder:
 
 class EsClientWrapper:
     # A wrapper to actually make the calls to elasticsearch
-    def __init__(self, eshosts, **esopts):
-        self.ES = Elasticsearch(eshosts, **esopts)
+    def __init__(self, eshosts):
+        self.ES = Elasticsearch(eshosts, **client_config.esopts)
         self.maxpage = client_config.maxpage
         max_retries = 10
         retries = 0
@@ -387,7 +391,7 @@ class EsClientWrapper:
         """
         Get top terms associated with a query
         """
-        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field), request_timeout=client_config.top_term_query_timeout)  # type: ignore [call-arg]
+        res = self.ES.search(index=collection, body=QueryBuilder(q).terms_query(field))  # type: ignore [call-arg]
         if (
             not res["hits"]["hits"]
             or not res["aggregations"]["sample"]["topterms"]["buckets"]
