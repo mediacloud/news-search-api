@@ -43,6 +43,21 @@ class QueryBuilder:
     VALID_SORT_ORDERS = ["asc", "desc"]
     VALID_SORT_FIELDS = ["publication_date", "indexed_date"]
 
+    class Aggregators(Enum):
+        DAILY_COUNTS = {
+            "dailycounts": {
+                "date_histogram": {
+                    "field": "publication_date",
+                    "calendar_interval": "day",
+                    "min_doc_count": 1,
+                }
+            }
+        }
+        TOP_LANGS = {"toplangs": {"terms": {"field": "language.keyword", "size": 100}}}
+        TOP_DOMAINS = {
+            "topdomains": {"terms": {"field": "canonical_domain.keyword", "size": 100}}
+        }
+
     def __init__(self, query_text):
         self.query_text = query_text
         self._source = [
@@ -95,30 +110,17 @@ class QueryBuilder:
         }
         return default
 
-    def overview_query(self):
+    def aggregator_query(self, *aggs: "QueryBuilder.Aggregators") -> Dict:
         query = self.basic_query()
         query.update(
             {
-                "aggregations": {
-                    "daily": {
-                        "date_histogram": {
-                            "field": "publication_date",
-                            "calendar_interval": "day",
-                            "min_doc_count": 1,
-                        }
-                    },
-                    "lang": {"terms": {"field": "language.keyword", "size": 100}},
-                    "domain": {
-                        "terms": {"field": "canonical_domain.keyword", "size": 100}
-                    },
-                    "tld": {"terms": {"field": "tld", "size": 100}},
-                },
+                "aggregations": {k: v for agg in aggs for k, v in agg.value.items()},
                 "track_total_hits": True,
             }
         )
         return query
 
-    def terms_query(self, field):
+    def terms_query(self, field) -> Dict:
         resct = 200
         aggr_map = {
             "terms": {
@@ -172,7 +174,7 @@ class QueryBuilder:
             query["search_after"] = [decode_key(resume)]
         return query
 
-    def article_query(self):
+    def article_query(self) -> Dict:
         default: dict = {
             "_source": self._expanded_source,
             "query": {"match": {"_id": self.query_text}},
@@ -251,29 +253,100 @@ class EsClientWrapper:
     def format_counts(self, bucket: list):
         return {item["key"]: item["doc_count"] for item in bucket}
 
-    def search_overview(self, collection: str, q: str):
+    def aggregator_query(
+        self, collection: str, q: str, *aggs: QueryBuilder.Aggregators, **options
+    ):
         """
-        Get overview statistics for a query
+        Abstraction to DRY out permutations of the 'overview' query getting broken out into their own calls
         """
-        res = self.ES.search(index=collection, body=QueryBuilder(q).overview_query())  # type: ignore [call-arg]
+        query_body = QueryBuilder(q).aggregator_query(*aggs)
+
+        res = self.ES.search(index=collection, body=query_body)  # type: ignore [call-arg]
         if not res["hits"]["hits"]:
             raise HTTPException(status_code=404, detail="No results found!")
 
         total = res["hits"]["total"]["value"]
-        tldsum = sum(
-            item["doc_count"] for item in res["aggregations"]["tld"]["buckets"]
-        )
-        return {
+
+        return_dict = {
             "query": q,
-            "total": max(total, tldsum),
-            "topdomains": self.format_counts(res["aggregations"]["domain"]["buckets"]),
-            "toptlds": self.format_counts(res["aggregations"]["tld"]["buckets"]),
-            "toplangs": self.format_counts(res["aggregations"]["lang"]["buckets"]),
-            "dailycounts": self.format_day_counts(
-                res["aggregations"]["daily"]["buckets"]
-            ),
-            "matches": [self.format_match(h, collection) for h in res["hits"]["hits"]],
         }
+
+        # Add the results of each aggregator to the return value
+        for agg in aggs:
+            agg_name = list(agg.value.keys())[0]
+            return_dict.update(
+                {agg_name: self.format_counts(res["aggregations"][agg_name]["buckets"])}
+            )
+
+        # Only return the total and matches if explicitly requested
+        if "overview" in options:
+            # We use a sum of the top_domains to supplement the total, as elasticsearch has a hard limit
+            # of 10,000 results per page in a source query, but aggregators can go around this.
+            #
+            if QueryBuilder.Aggregators.TOP_DOMAINS not in aggs:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Can't run overview query without top_domains aggregator",
+                )
+
+            domain_sum = sum(
+                item["doc_count"]
+                for item in res["aggregations"]["topdomains"]["buckets"]
+            )
+
+            return_dict.update(
+                {
+                    "total": max(total, domain_sum),
+                    "matches": [  # type: ignore [dict-item]
+                        self.format_match(h, collection) for h in res["hits"]["hits"]
+                    ],
+                }
+            )
+
+        return return_dict
+
+    def search_overview(self, collection: str, q: str):
+        """
+        Get overview statistics for a query
+        """
+        return self.aggregator_query(
+            collection,
+            q,
+            QueryBuilder.Aggregators.DAILY_COUNTS,
+            QueryBuilder.Aggregators.TOP_LANGS,
+            QueryBuilder.Aggregators.TOP_DOMAINS,
+            overview=True,
+        )
+
+    def daily_counts(self, collection: str, q: str):
+        """
+        Return just a daily count histogram for a query
+        """
+        return self.aggregator_query(
+            collection,
+            q,
+            QueryBuilder.Aggregators.DAILY_COUNTS,
+        )
+
+    def top_languages(self, collection: str, q: str):
+        """
+        Return top languagues for a query
+        """
+        return self.aggregator_query(
+            collection,
+            q,
+            QueryBuilder.Aggregators.TOP_LANGS,
+        )
+
+    def top_domains(self, collection: str, q: str):
+        """
+        Return top domains for a query
+        """
+        return self.aggregator_query(
+            collection,
+            q,
+            QueryBuilder.Aggregators.TOP_DOMAINS,
+        )
 
     def search_result(
         self,

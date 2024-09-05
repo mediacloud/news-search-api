@@ -249,6 +249,63 @@ def search_overview_via_payload(collection: Collection, req: Request, payload: Q
     return ES.search_overview(collection.name, payload.q)
 
 
+@v1.get("/{collection}/search/daily_counts", tags=["data"])
+@v1.head("/{collection}/search/daily_counts", include_in_schema=False)
+def search_daily_counts(collection: Collection, q: str, req: Request):
+    """
+    Report overview summary of the search result
+    """
+    return ES.daily_counts(collection.name, q)
+
+
+@v1.post("/{collection}/search/daily_counts", tags=["data"])
+def search_daily_counts_via_payload(
+    collection: Collection, req: Request, payload: Query
+):
+    """
+    Report summary of the search result
+    """
+    return ES.daily_counts(collection.name, payload.q)
+
+
+@v1.get("/{collection}/search/top_languages", tags=["data"])
+@v1.head("/{collection}/search/top_languages", include_in_schema=False)
+def search_top_languages(collection: Collection, q: str, req: Request):
+    """
+    Report overview summary of the search result
+    """
+    return ES.top_languages(collection.name, q)
+
+
+@v1.post("/{collection}/search/top_languages", tags=["data"])
+def search_top_languages_via_payload(
+    collection: Collection, req: Request, payload: Query
+):
+    """
+    Report summary of the search result
+    """
+    return ES.top_languages(collection.name, payload.q)
+
+
+@v1.get("/{collection}/search/top_domains", tags=["data"])
+@v1.head("/{collection}/search/top_domains", include_in_schema=False)
+def search_top_domains(collection: Collection, q: str, req: Request):
+    """
+    Report overview summary of the search result
+    """
+    return ES.top_domains(collection.name, q)
+
+
+@v1.post("/{collection}/search/top_domains", tags=["data"])
+def search_top_domains_via_payload(
+    collection: Collection, req: Request, payload: Query
+):
+    """
+    Report summary of the search result
+    """
+    return ES.top_domains(collection.name, payload.q)
+
+
 @v1.get("/{collection}/search/result", tags=["data"])
 @v1.head("/{collection}/search/result", include_in_schema=False)
 def search_result_via_query_params(
