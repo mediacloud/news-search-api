@@ -69,7 +69,7 @@ app = FastAPI()
 
 
 class ApiVersion(str, Enum):
-    v1 = "1.3.7"
+    v1 = "1.3.9"
 
 
 ES = EsClientWrapper(config.eshosts_list, **config.esopts)

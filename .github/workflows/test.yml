@@ -2,6 +2,7 @@ name: Test Code
 
 on:
   - push
+  - workflow_dispatch
 
 jobs:
   test:

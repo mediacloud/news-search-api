@@ -69,6 +69,8 @@ Deployments are now configured to be automatically built and released via GitHub
 5. Once it is done, the labeled image will be ready at https://hub.docker.com/r/mcsystems/news-search-api
 
 ## Version History
+* __v1.3.9__ - Overview query includes 'keyword' field for domain aggregator
+* __v1.3.8__ - Bugfix for 'expanded' results
 * __v1.3.7__ - Increased default time out on top-terms, better tests
 * __v1.3.6__ - Major refactor and cleanup, behavior unchanged
 * __v1.3.5__ - Use mc-manage for deployment record
