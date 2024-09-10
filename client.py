@@ -251,11 +251,11 @@ class EsClientWrapper:
             res["text_extraction"] = src.get("text_extraction")
         return res
 
-    def format_day_counts(self, bucket: list):
-        return {item["key_as_string"][:10]: item["doc_count"] for item in bucket}
-
-    def format_counts(self, bucket: list):
-        return {item["key"]: item["doc_count"] for item in bucket}
+    def format_counts(self, bucket: list, day_counts=False):
+        if day_counts:
+            return {item["key_as_string"][:10]: item["doc_count"] for item in bucket}
+        else:
+            return {item["key"]: item["doc_count"] for item in bucket}
 
     def aggregator_query(
         self, collection: str, q: str, *aggs: QueryBuilder.Aggregators, **options
@@ -278,8 +278,9 @@ class EsClientWrapper:
         # Add the results of each aggregator to the return value
         for agg in aggs:
             agg_name = list(agg.value.keys())[0]
-            return_dict.update(
-                {agg_name: self.format_counts(res["aggregations"][agg_name]["buckets"])}
+            return_dict[agg_name] = self.format_counts(
+                res["aggregations"][agg_name]["buckets"],
+                day_counts=(agg_name == "dailycounts"),
             )
 
         # Only return the total and matches if explicitly requested
