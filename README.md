@@ -69,6 +69,7 @@ Deployments are now configured to be automatically built and released via GitHub
 5. Once it is done, the labeled image will be ready at https://hub.docker.com/r/mcsystems/news-search-api
 
 ## Version History
+* __v1.4.1__ - Bugfix correcting missed date conversion in client.py
 * __v1.4.0__ - New endpoints for sub-aggregations, including a small refactor of how aggregation queries are constructed, configurable timeout for elasticsearch
 * __v1.3.9__ - Overview query includes 'keyword' field for domain aggregator
 * __v1.3.8__ - Bugfix for 'expanded' results
