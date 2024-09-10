@@ -278,9 +278,22 @@ class EsClientWrapper:
         # Add the results of each aggregator to the return value
         for agg in aggs:
             agg_name = list(agg.value.keys())[0]
-            return_dict.update(
-                {agg_name: self.format_counts(res["aggregations"][agg_name]["buckets"])}
-            )
+            if agg_name == "dailycounts":
+                return_dict.update(
+                    {
+                        agg_name: self.format_day_counts(
+                            res["aggregations"][agg_name]["buckets"]
+                        )
+                    }
+                )
+            else:
+                return_dict.update(
+                    {
+                        agg_name: self.format_counts(
+                            res["aggregations"][agg_name]["buckets"]
+                        )
+                    }
+                )
 
         # Only return the total and matches if explicitly requested
         if "overview" in options:
