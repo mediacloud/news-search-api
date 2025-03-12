@@ -1,6 +1,6 @@
 # This project is now Depricated
 
-As of early 2025, the we have removed this module from the mediacloud stack.
+As of early 2025, the we have removed this module from the MediaCloud stack.
 As a result, this repository will recieve no further updates.
 
 
